@@ -76,8 +76,13 @@
         }
         return counts;
     }
-    function parseISODate(str) { if (!str) return new Date(0); const [year, month, day] = str.split('-').map(Number); return new Date(year, month - 1, day); }
-    function copyToClipboard(text) { navigator.clipboard.writeText(text); }
+    function parseISODate(str) {
+  if (!str || typeof str !== 'string' || !str.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    return null; // Retorna null ou uma data de hoje, para não quebrar.
+  }
+  const [year, month, day] = str.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
 
     // Componente do Menu de Status com Portal (MODIFICADO para aceitar statusOptions)
     function StatusMenu({ lead, onStatusChange, onClose, position, statusOptions }) {

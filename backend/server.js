@@ -36,7 +36,7 @@ async function initializeDatabase() {
 
       dbLocal.exec(`
           CREATE TABLE IF NOT EXISTS leads (
-              id TEXT PRIMARY KEY, dataCadastro TEXT, nome TEXT, cpf TEXT, email TEXT, dataNascimento TEXT,
+              id TEXT PRIMARY KEY, dataCadastro TEXT DEFAULT TO_CHAR(NOW(), 'YYYY-MM-DD'), nome TEXT, cpf TEXT, email TEXT, dataNascimento TEXT,
               telefone TEXT, telefone2 TEXT, uf TEXT, cep TEXT, rua TEXT, numero TEXT, complemento TEXT,
               bairro TEXT, cidade TEXT, plano TEXT, vendedor TEXT, dataAgendamento TEXT, turnoAgendamento TEXT,
               status1 TEXT, statusEsteira TEXT, tecnico TEXT, obs TEXT, contrato TEXT, infoExtra TEXT,
@@ -140,9 +140,9 @@ app.get('/api/leads', async (req, res) => {
 
 // Rota para adicionar um novo lead
 app.post('/api/leads', async (req, res) => {
-  const newLead = req.body;
   // Adicionado: Garante que dataCadastro tenha um valor válido (data atual) se não foi fornecido
-  newLead.dataCadastro = newLead.dataCadastro || new Date().toISOString().slice(0, 10); 
+  newLead.dataCadastro = newLead.dataCadastro ? newLead.dataCadastro.slice(0,10) : new Date().toISOString().slice(0, 10);
+  const newLead = req.body;
 
   const sql = `
     INSERT INTO leads (
