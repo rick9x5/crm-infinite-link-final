@@ -1,0 +1,65 @@
+# Arquivos de log e cache do Node.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-store/
+lerna-debug.log*
+
+# Módulos de dependência
+node_modules/
+/node_modules
+
+# Variáveis de ambiente
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.staging.local
+
+# Build artifacts
+build/
+dist/
+public/build/
+.next/ # Para projetos Next.js
+.cache/
+.parcel-cache/
+.vite/ # Para projetos Vite
+
+# Arquivos de cache e configuração de IDEs (como VS Code, WebStorm)
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Arquivos do sistema operacional
+.DS_Store # macOS
+Thumbs.db # Windows
+ehthumbs.db # Windows
+Desktop.ini # Windows
+*.log
+*.temp
+*.tmp
+*.swp # Vim swap files
+*.swo # Vim swap files
+*~    # Backup files
+*.bak
+*.orig
+*.rej
+
+# Binários e executáveis
+*.exe
+*.dll
+*.so
+*.o
+*.obj
+*.pdb
+*.lib
+
+# Arquivos específicos do backend
+backend/*.db* # Ignora todos os arquivos de banco de dados SQLite e seus journals dentro da pasta backend
+backend/logs/        # Se você tiver uma pasta de logs no backend
+
+# Arquivos específicos do frontend (APENAS SE HOUVER OUTRAS PASTAS DE BUILD AQUI ALÉM DA RAIZ)
+# Se o build do frontend criar uma pasta 'build' na raiz principal, a linha 'build/' já ignora.
+# Se houver outro tipo de pasta de build específica do frontend que não seja na raiz, adicione aqui.
