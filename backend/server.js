@@ -3,29 +3,32 @@ const express = require('express');
 const cors = require('cors');
 const { Client } = require('pg');
 
-const app = express(); // DEFINIR 'app' AQUI, NO INÍCIO!
+const app = express();
 const PORT = process.env.PORT || 5000;
 
 let db; // Variável global para a instância do banco de dados
-let pgClient; // Variável para a instância do cliente PostgreSQL (apenas para Heroku)
+let pgClient; // Variável para a instância do cliente PostgreSQL
 
 // --- Middlewares ---
-// Configuração do CORS para permitir múltiplas origens
+// Configuração do CORS para permitir múltiplas origens (localhost e Vercel dinâmico)
 const allowedOrigins = [
   'http://localhost:3000', // Para o ambiente de desenvolvimento local (frontend)
-  'http://localhost:3002', // Se o seu frontend estiver rodando em 3002
+  'http://localhost:3002', // SE o seu frontend estiver rodando em 3002
   'https://crm-infinite-link-final.vercel.app', // A URL principal do seu frontend no Vercel
-  // Adiciona um regex para permitir qualquer subdomínio do Vercel para o seu projeto
-  /https:\/\/crm-infinite-link-final-(.+)\.vercel\.app$/ // Permite urls como https://crm-infinite-link-final-k38aturnq-ricks-projects-b6640f6c.vercel.app
+  // Regex para permitir qualquer subdomínio gerado pelo Vercel para o seu projeto
+  // O nome do projeto Vercel é 'crm-infinite-link-final'
+  /https:\/\/crm-infinite-link-final-(.+)\.vercel\.app$/ // Crucial para deploys de pré-visualização
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true); 
+    // Permite requisições sem origem (como de ferramentas como Postman ou curl)
+    if (!origin) return callback(null, true);
+    // Verifica se a origem está na lista de permitidas ou corresponde ao regex
     if (allowedOrigins.includes(origin) || allowedOrigins.some(regex => regex instanceof RegExp && regex.test(origin))) {
       return callback(null, true);
     }
-    console.error('CORS blocked origin:', origin); 
+    console.error('CORS blocked origin:', origin); // Log para ver qual origem está sendo bloqueada
     return callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -39,12 +42,11 @@ app.use(express.json());
 async function initializeDatabase() {
   if (!process.env.DATABASE_URL) {
       // === Configuração para SQLite local ===
-      const Database = require('better-sqlite3'); // Carrega better-sqlite3 apenas aqui
+      const Database = require('better-sqlite3');
       console.log('Backend: Usando SQLite local para desenvolvimento.');
       const dbLocal = new Database('crm_leads.db', { verbose: console.log });
 
       dbLocal.run = (sql, params) => {
-          // Adaptação para PostgreSQL ($n) para SQLite (?)
           const sqliteSql = sql.replace(/\$(\d+)/g, '?');
           const stmt = dbLocal.prepare(sqliteSql);
           const boundParams = {};
@@ -66,7 +68,7 @@ async function initializeDatabase() {
                 boundParams[key] = params[key];
             });
           }
-          return stmt.all(boundParams); // Corrigido para passar boundParams diretamente
+          return stmt.all(boundParams);
       };
 
       dbLocal.exec(`
@@ -80,12 +82,12 @@ async function initializeDatabase() {
               pontoReferencia TEXT, linkLocalizacao TEXT, obsEndereco TEXT, origemVenda TEXT, diaVencimento TEXT
           )
       `);
-      console.log('Backend: Tabela leads verificada/criada no SQLite.');
+      console.log('Backend: Tabela leads verificada/creada en SQLite.');
       db = dbLocal;
       return;
   }
 
-  // --- Configuração para PostgreSQL no Heroku ---
+  // --- Configuración para PostgreSQL en Heroku ---
   pgClient = new Client({
     connectionString: process.env.DATABASE_URL,
     ssl: {
@@ -95,7 +97,7 @@ async function initializeDatabase() {
 
   try {
     await pgClient.connect();
-    console.log('Backend: Conectado ao PostgreSQL no Heroku!');
+    console.log('Backend: Conectado a PostgreSQL en Heroku!');
 
     pgClient.run = async (sql, params) => {
       let pgSql = sql.replace(/@(\w+)/g, (match, p1) => {
@@ -151,25 +153,25 @@ async function initializeDatabase() {
         diaVencimento TEXT
       )
     `);
-    console.log('Backend: Tabela leads verificada/criada no PostgreSQL.');
+    console.log('Backend: Tabla leads verificada/creada en PostgreSQL.');
     db = pgClient;
 
   } catch (err) {
-    console.error('Backend: Erro de conexão ou criação de tabela PostgreSQL:', err.stack);
+    console.error('Backend: Error de conexión o creación de tabla PostgreSQL:', err.stack);
     process.exit(1);
   }
 }
 
 
-// --- Rotas da API ---
+// --- Rutas de la API ---
 
 app.get('/api/leads', async (req, res) => {
   try {
     const leads = await db.all('SELECT * FROM leads ORDER BY dataCadastro DESC, id DESC');
     res.json(leads);
   } catch (error) {
-    console.error("Backend: Erro ao obter leads:", error.message);
-    res.status(500).json({ message: "Erro interno do servidor ao obter leads." });
+    console.error("Backend: Error al obtener leads:", error.message);
+    res.status(500).json({ message: "Internal server error when obtaining leads." });
   }
 });
 
@@ -178,27 +180,27 @@ app.post('/api/leads', async (req, res) => {
   newLead.dataCadastro = (newLead.dataCadastro && String(newLead.dataCadastro).match(/^\d{4}-\d{2}-\d{2}$/))
                           ? String(newLead.dataCadastro).slice(0, 10)
                           : new Date().toISOString().slice(0, 10);
-
+  
   const sql = `
     INSERT INTO leads (
-      id, dataCadastro, nome, cpf, email, dataNascimento, telefone, telefone2, uf, cep, rua, numero, complemento,
+      nome, cpf, email, dataNascimento, telefone, telefone2, uf, cep, rua, numero, complemento,
       bairro, cidade, plano, vendedor, dataAgendamento, turnoAgendamento, status1, statusEsteira, tecnico, obs,
-      contrato, infoExtra, pontoReferencia, linkLocalizacao, obsEndereco, origemVenda, diaVencimento
+      contrato, infoExtra, pontoReferencia, linkLocalizacao, obsEndereco, origenVenta, diaVencimiento
     ) VALUES (
-      @id, COALESCE(@dataCadastro, TO_CHAR(NOW(), 'YYYY-MM-DD')), @nome, @cpf, @email, @dataNascimento, @telefone, @telefone2, @uf, @cep, @rua, @numero, @complemento,
+      @nome, COALESCE(@dataCadastro, TO_CHAR(NOW(), 'YYYY-MM-DD')), @cpf, @email, @dataNascimento, @telefone, @telefone2, @uf, @cep, @rua, @numero, @complemento,
       @bairro, @cidade, @plano, @vendedor, @dataAgendamento, @turnoAgendamento, @status1, @statusEsteira, @tecnico, @obs,
-      @contrato, @infoExtra, @pontoReferencia, @linkLocalizacao, @obsEndereco, @origemVenda, @diaVencimento
-    ) RETURNING id, dataCadastro`;
+      @contrato, @infoExtra, @pontoReferencia, @linkLocalizacao, @obsEndereco, @origemVenda, @diaVencimiento
+    ) RETURNING id, dataCadastro`; // Siempre retorna el ID y dataCadastro generados/usados
 
   try {
     const info = await db.run(sql, newLead);
     res.status(201).json({ 
-        message: "Lead adicionado com sucesso!", 
-        lead: { ...newLead, id: info.lastInsertRowid, dataCadastro: info.rows[0].dataCadastro } 
-    });
+        message: "Lead added successfully!", 
+        lead: { ...newLead, id: info.rows[0].id, dataCadastro: info.rows[0].dataCadastro } 
+    }); // Retorna el ID y dataCadastro real del DB
   } catch (error) {
-    console.error("Backend: Erro ao adicionar lead:", error.message);
-    res.status(500).json({ message: "Erro interno do servidor ao adicionar lead." });
+    console.error("Backend: Error al agregar lead:", error.message);
+    res.status(500).json({ message: "Internal server error when adding lead." });
   }
 });
 
@@ -209,24 +211,24 @@ app.put('/api/leads/:id', async (req, res) => {
     UPDATE leads SET
       dataCadastro = @dataCadastro, nome = @nome, cpf = @cpf, email = @email, dataNascimento = @dataNascimento,
       telefone = @telefone, telefone2 = @telefone2, uf = @uf, cep = @cep, rua = @rua, numero = @numero,
-      complemento = @complemento, bairro = @bairro, cidade = @cidade, plano = @plano, vendedor = @vendedor,
+      complemento = @complemento, bairro = @bairro, ciudad = @cidade, plano = @plano, vendedor = @vendedor,
       dataAgendamento = @dataAgendamento, turnoAgendamento = @turnoAgendamento, status1 = @status1,
       statusEsteira = @statusEsteira, tecnico = @tecnico, obs = @obs, contrato = @contrato,
-      infoExtra = @infoExtra, pontoReferencia = @pontoReferencia, linkLocalizacao = @linkLocalizacao,
-      obsEndereco = @obsEndereco, origemVenda = @origemVenda, diaVencimento = @diaVencimento
+      infoExtra = @infoExtra, puntoReferencia = @pontoReferencia, linkLocalizacion = @linkLocalizacao,
+      obsEndereco = @obsEndereco, origenVenta = @origemVenda, diaVencimiento = @diaVencimiento
     WHERE id = @id
   `;
   try {
     const paramsWithId = { ...updatedLead, id };
     const info = await db.run(sql, paramsWithId);
     if (info.changes > 0) {
-      res.json({ message: "Lead atualizado com sucesso!", lead: updatedLead });
+      res.json({ message: "Lead updated successfully!", lead: updatedLead });
     } else {
-      res.status(404).json({ message: "Lead não encontrado." });
+      res.status(404).json({ message: "Lead not found." });
     }
   } catch (error) {
-    console.error("Backend: Erro ao atualizar lead:", error.message);
-    res.status(500).json({ message: "Erro interno do servidor ao atualizar lead." });
+    console.error("Backend: Error al actualizar lead:", error.message);
+    res.status(500).json({ message: "Internal server error when updating lead." });
   }
 });
 
@@ -236,22 +238,22 @@ app.delete('/api/leads/:id', async (req, res) => {
   try {
     const info = await db.run(sql, { 1: id });
     if (info.changes > 0) {
-      res.json({ message: "Lead excluído com sucesso!" });
+      res.json({ message: "Lead deleted successfully!" });
     } else {
-      res.status(404).json({ message: "Lead não encontrado." });
+      res.status(404).json({ message: "Lead not found." });
     }
   } catch (error) {
-    console.error("Backend: Erro ao excluir lead:", error.message);
-    res.status(500).json({ message: "Erro interno do servidor ao excluir lead." });
+    console.error("Backend: Error al eliminar lead:", error.message);
+    res.status(500).json({ message: "Internal server error when deleting lead." });
   }
 });
 
-// --- Inicia o Servidor (APÓS a inicialização do DB) ---
+// --- Inicia el Servidor (después de la inicialización de la DB) ---
 initializeDatabase().then(() => {
   app.listen(PORT, () => {
-    console.log(`Backend: Servidor rodando em http://localhost:${PORT}`);
+    console.log(`Backend: Servidor corriendo en http://localhost:${PORT}`);
   });
 }).catch(err => {
-  console.error('Backend: Falha crítica ao iniciar o banco de dados e servidor:', err.message);
+  console.error('Backend: Critical failure starting database and server:', err.message);
   process.exit(1);
 });
