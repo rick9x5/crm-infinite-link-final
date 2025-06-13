@@ -30,13 +30,13 @@ const statusPill = {
     "CANCELADO": "bg-red-100 text-red-800",
     "QUALIFY - PEDIR DOCUMENTOS": "bg-blue-100 text-blue-800",
     "QUALIFY - DOCUMENTOS ENVIADOS": "bg-blue-100 text-blue-800",
-    "AGENDADO": "bg-blue-100 text-blue-800",
+    "AGENDADO": "bg-blue-100 text-blue-800", // Alterado para Azul
     "FINANCEIRA": "bg-gray-200 text-gray-700",
     "TÉCNICA": "bg-gray-200 text-gray-700"
 };
 const infoExtraOptions = [ { value: "", color: "bg-gray-200 text-gray-500 border-gray-300", text: "–", label: "Nenhum" }, { value: "FORMS_ENVIADO", color: "bg-blue-500 text-white border-blue-600", text: "F", label: "Forms Enviado" }, { value: "PENDENCIA", color: "bg-yellow-400 text-yellow-900 border-yellow-600", text: "P", label: "Pendência" }, { value: "NUMERO_ALTERADO", color: "bg-yellow-500 text-yellow-900 border-yellow-700", text: "N", label: "Número alterado" }, { value: "TRATANDO", color: "bg-purple-500 text-white border-purple-700", text: "T", label: "Tratando" }, ];
 const statusIconMap = {
-    "AGENDADO": { icon: CheckCircle2, color: "text-blue-500" },
+    "AGENDADO": { icon: CheckCircle2, color: "text-blue-500" }, // Alterado para Azul
     "QUALIFY - PEDIR DOCUMENTOS": { icon: Wrench, color: "text-blue-500" },
     "QUALIFY - DOCUMENTOS ENVIADOS": { icon: Wrench, color: "text-blue-500" },
     "CPF REPROVADO": { icon: AlertTriangle, color: "text-yellow-500" },
@@ -444,7 +444,7 @@ export default function AdminPanel({ leads, onAddLead, onUpdateLead, onDeleteLea
         <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
           <div className="flex items-center gap-3 relative">
             <div className="relative w-fit">
-              <button className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 shadow-sm bg-white hover:ring-2 hover:ring-green-400 transition" onClick={() => setShowPicker(!showPicker)} type="button"><CalendarDays className="w-5 h-5 text-green-600" /><span className="text-sm">{periodoLabel}</span></button>{showPicker && (<div className="absolute z-50 mt-2 shadow-2xl bg-white rounded p-3 border border-gray-300"><DateRange onChange={item => setRange([item.selection])} ranges={range} locale={ptBR} moveRangeOnFirstSelection={false} rangeColors={["#16a34a"]} showDateDisplay={false} /><div className="flex justify-end gap-2 pt-2"><button className="px-3 py-1 rounded bg-gray-200 text-gray-800 text-sm" onClick={handleCancel} type="button">Cancelar</button><button className="px-3 py-1 rounded bg-green-600 text-white text-sm" onClick={handleOk} type="button">Aplicar</button></div></div>)}
+              <button className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 shadow-sm bg-white hover:ring-2 hover:ring-green-400 transition" onClick={() => setShowPicker(!showPicker)} type="button"><CalendarDays className="w-5 h-5 text-green-600" /><span className="text-sm">{periodoLabel}</span></button>{showPicker && (<div className="absolute z-50 mt-2 shadow-2xl bg-white rounded p-3 border border-gray-300"><DateRange onChange={item => setRange([item.selection])} ranges={range} locale={ptBR} moveRangeOnFirstSelection={false} showDateDisplay={false} /><div className="flex justify-end gap-2 pt-2"><button className="px-3 py-1 rounded bg-gray-200 text-gray-800 text-sm" onClick={handleCancel} type="button">Cancelar</button><button className="px-3 py-1 rounded bg-green-600 text-white text-sm" onClick={handleOk} type="button">Aplicar</button></div></div>)}
             </div>
             <UserSearch className="w-6 h-6 text-gray-400 ml-5" />
             <input type="text" placeholder="Buscar cliente por CPF ou nome" className="w-full md:w-96 px-4 py-2 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-green-400 focus:outline-none bg-white text-gray-900" value={busca} onChange={e => setBusca(e.target.value)} />
@@ -472,7 +472,7 @@ export default function AdminPanel({ leads, onAddLead, onUpdateLead, onDeleteLea
                   {leadsFiltradosParaTabela.map((lead) => (
                     <React.Fragment key={lead.id}>
                       <tr className={`border-t border-gray-100 hover:bg-green-50 cursor-pointer transition-all`} onClick={() => setLeadExpandido(leadExpandido === lead.id ? null : lead.id)}>
-                        <td className="py-2 px-4 text-center align-middle">{lead.dataCadastro.split('-').reverse().join('/')}</td><td className="py-2 px-4 text-center align-middle font-medium">{lead.nome}</td><td className="py-2 px-4 text-center align-middle">{lead.cpf}</td><td className="py-2 px-4 text-center align-middle">{lead.uf}</td><td className="py-2 px-4 text-center align-middle">{lead.vendedor}</td>
+                        <td className="py-2 px-4 text-center align-middle">{lead.dataCadastro ? lead.dataCadastro.split('-').reverse().join('/') : '-'}</td><td className="py-2 px-4 text-center align-middle font-medium">{lead.nome}</td><td className="py-2 px-4 text-center align-middle">{lead.cpf}</td><td className="py-2 px-4 text-center align-middle">{lead.uf}</td><td className="py-2 px-4 text-center align-middle">{lead.vendedor}</td>
                         <td className="py-2 px-4 text-center align-middle">
                           <div className="flex items-center justify-center gap-2">
                             <button onClick={(e) => { e.stopPropagation(); const rect = e.currentTarget.getBoundingClientRect(); setStatusMenuState({ open: true, leadId: lead.id, position: { top: rect.bottom + 5, left: rect.left } }); }} className={`px-4 py-1.5 text-sm w-full max-w-[220px] font-semibold rounded-full transition-transform hover:scale-105 ${statusPill[lead.status1] || "bg-gray-100 text-gray-900 border-gray-300"}`}>{lead.status1 || "Selecione"}</button>
