@@ -472,7 +472,7 @@ export default function AdminPanel({ leads, onAddLead, onUpdateLead, onDeleteLea
                   {leadsFiltradosParaTabela.map((lead) => (
                     <React.Fragment key={lead.id}>
                       <tr className={`border-t border-gray-100 hover:bg-green-50 cursor-pointer transition-all`} onClick={() => setLeadExpandido(leadExpandido === lead.id ? null : lead.id)}>
-                        <td className="py-2 px-4 text-center align-middle">{lead.dataCadastro ? lead.dataCadastro.split('-').reverse().join('/') : '-'}</td><td className="py-2 px-4 text-center align-middle font-medium">{lead.nome}</td><td className="py-2 px-4 text-center align-middle">{lead.cpf}</td><td className="py-2 px-4 text-center align-middle">{lead.uf}</td><td className="py-2 px-4 text-center align-middle">{lead.vendedor}</td>
+                        <td className="py-2 px-4 text-center align-middle">{lead.dataCadastro ? String(lead.dataCadastro).split('-').reverse().join('/') : '-'}</td><td className="py-2 px-4 text-center align-middle font-medium">{lead.nome}</td><td className="py-2 px-4 text-center align-middle">{lead.cpf}</td><td className="py-2 px-4 text-center align-middle">{lead.uf}</td><td className="py-2 px-4 text-center align-middle">{lead.vendedor}</td>
                         <td className="py-2 px-4 text-center align-middle">
                           <div className="flex items-center justify-center gap-2">
                             <button onClick={(e) => { e.stopPropagation(); const rect = e.currentTarget.getBoundingClientRect(); setStatusMenuState({ open: true, leadId: lead.id, position: { top: rect.bottom + 5, left: rect.left } }); }} className={`px-4 py-1.5 text-sm w-full max-w-[220px] font-semibold rounded-full transition-transform hover:scale-105 ${statusPill[lead.status1] || "bg-gray-100 text-gray-900 border-gray-300"}`}>{lead.status1 || "Selecione"}</button>
@@ -505,119 +505,116 @@ export default function AdminPanel({ leads, onAddLead, onUpdateLead, onDeleteLea
       </button>
 
       {/* NOVO MODAL DE CADASTRO DE LEAD - REESTRUTURADO */}
-      {showNewLeadModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 animate-fadein">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-5xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-bold text-gray-800">Cadastrar Novo Lead</h3>
-              <button onClick={() => setShowNewLeadModal(false)} className="text-gray-500 hover:text-gray-800"><X size={28} /></button>
-            </div>
-            <form onSubmit={handleSaveNewLead}>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
-                {/* Dados Pessoais */}
-                <div className="space-y-4 p-4 border rounded-lg shadow-sm bg-white">
-                  <h4 className="font-semibold text-lg text-green-600">Dados Pessoais</h4>
-                  <div><label className="text-sm">Nome Completo <span className="text-red-500">*</span></label><input name="nome" value={newLeadData.nome} onChange={handleNewLeadChange} className={inputStyle} required /></div>
-                  <div><label className="text-sm">CPF <span className="text-red-500">*</span></label><input name="cpf" value={newLeadData.cpf} onChange={handleNewLeadChange} className={inputStyle} required /></div>
-                  <div><label className="text-sm">Email</label><input name="email" type="email" value={newLeadData.email} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                  <div><label className="text-sm">Data de Nascimento</label><input name="dataNascimento" type="date" value={newLeadData.dataNascimento} onChange={e => handleNewLeadChange({ target: { name: 'dataNascimento', value: e.target.value } })} className={inputStyle} /></div>
-                  <div><label className="text-sm">Telefone 1 <span className="text-red-500">*</span></label><input name="telefone" value={newLeadData.telefone} onChange={handleNewLeadChange} className={inputStyle} required /></div>
-                  <div><label className="text-sm">Telefone 2</label><input name="telefone2" value={newLeadData.telefone2} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                </div>
+       <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 animate-fadein">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-5xl max-h-[90vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-2xl font-bold text-gray-800">Cadastrar Novo Lead</h3>
+                    <button onClick={() => setShowNewLeadModal(false)} className="text-gray-500 hover:text-gray-800"><X size={28} /></button>
+                </div>
+                <form onSubmit={handleSaveNewLead}>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Dados Pessoais */}
+                        <div className="space-y-4 p-4 border rounded-lg shadow-sm bg-white">
+                            <h4 className="font-semibold text-lg text-green-600">Dados Pessoais</h4>
+                            <div><label className="text-sm">Nome Completo <span className="text-red-500">*</span></label><input name="nome" value={newLeadData.nome} onChange={handleNewLeadChange} className={inputStyle} required /></div>
+                            <div><label className="text-sm">CPF <span className="text-red-500">*</span></label><input name="cpf" value={newLeadData.cpf} onChange={handleNewLeadChange} className={inputStyle} required /></div>
+                            <div><label className="text-sm">Email</label><input name="email" type="email" value={newLeadData.email} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                            <div><label className="text-sm">Data de Nascimento</label><input name="dataNascimento" type="date" value={newLeadData.dataNascimento} onChange={e => handleNewLeadChange({ target: { name: 'dataNascimento', value: e.target.value } })} className={inputStyle} /></div>
+                            <div><label className="text-sm">Telefone 1 <span className="text-red-500">*</span></label><input name="telefone" value={newLeadData.telefone} onChange={handleNewLeadChange} className={inputStyle} required /></div>
+                            <div><label className="text-sm">Telefone 2</label><input name="telefone2" value={newLeadData.telefone2} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                        </div>
 
-                {/* Endereço */}
-                <div className="space-y-4 p-4 border rounded-lg shadow-sm bg-white">
-                  <h4 className="font-semibold text-lg text-green-600">Endereço</h4>
-                  <div><label className="text-sm">UF</label><input name="uf" value={newLeadData.uf} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                  <div><label className="text-sm">CEP</label><input name="cep" value={newLeadData.cep} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                  <div><label className="text-sm">Rua</label><input name="rua" value={newLeadData.rua} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                  <div><label className="text-sm">Número</label><input name="numero" value={newLeadData.numero} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                  <div><label className="text-sm">Complemento</label><input name="complemento" value={newLeadData.complemento} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                  <div><label className="text-sm">Bairro</label><input name="bairro" value={newLeadData.bairro} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                  <div><label className="text-sm">Cidade</label><input name="cidade" value={newLeadData.cidade} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                  <div><label className="text-sm">Ponto de Referência</label><input name="pontoReferencia" value={newLeadData.pontoReferencia} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                  <div><label className="text-sm">Link de Localização</label><input name="linkLocalizacao" value={newLeadData.linkLocalizacao} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                  <div><label className="text-sm">Obs. Endereço</label><textarea name="obsEndereco" rows="2" value={newLeadData.obsEndereco} onChange={handleNewLeadChange} className={inputStyle}></textarea></div>
-                </div>
+                        {/* Endereço */}
+                        <div className="space-y-4 p-4 border rounded-lg shadow-sm bg-white">
+                            <h4 className="font-semibold text-lg text-green-600">Endereço</h4>
+                            <div><label className="text-sm">UF</label><input name="uf" value={newLeadData.uf} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                            <div><label className="text-sm">CEP</label><input name="cep" value={newLeadData.cep} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                            <div><label className="text-sm">Rua</label><input name="rua" value={newLeadData.rua} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                            <div><label className="text-sm">Número</label><input name="numero" value={newLeadData.numero} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                            <div><label className="text-sm">Complemento</label><input name="complemento" value={newLeadData.complemento} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                            <div><label className="text-sm">Bairro</label><input name="bairro" value={newLeadData.bairro} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                            <div><label className="text-sm">Cidade</label><input name="cidade" value={newLeadData.cidade} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                            <div><label className="text-sm">Ponto de Referência</label><input name="pontoReferencia" value={newLeadData.pontoReferencia} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                            <div><label className="text-sm">Link de Localização</label><input name="linkLocalizacao" value={newLeadData.linkLocalizacao} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                            <div><label className="text-sm">Obs. Endereço</label><textarea name="obsEndereco" rows="2" value={newLeadData.obsEndereco} onChange={handleNewLeadChange} className={inputStyle}></textarea></div>
+                        </div>
 
-                {/* Dados da Venda */}
-                <div className="space-y-4 p-4 border rounded-lg shadow-sm bg-white">
-                  <h4 className="font-semibold text-lg text-green-600">Dados da Venda</h4>
-                  <div><label className="text-sm">Plano <span className="text-red-500">*</span></label><input name="plano" value={newLeadData.plano} onChange={handleNewLeadChange} className={inputStyle} required /></div>
-                  <div><label className="text-sm">Origem da Venda</label><input name="origemVenda" value={newLeadData.origemVenda} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                  <div><label className="text-sm">Dia do Vencimento</label><input name="diaVencimento" value={newLeadData.diaVencimento} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                  <div><label className="text-sm">Contrato</label><input name="contrato" value={newLeadData.contrato} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                  <div>
-                    <label className="text-sm">Status Inicial <span className="text-red-500">*</span></label>
-                    <div className="relative">
-                      <button
-                        type="button"
-                        ref={newLeadStatusButtonRef}
-                        className={`px-4 py-1.5 text-sm w-full font-semibold rounded-md transition ${newLeadData.status1 ? (statusPill[newLeadData.status1] || "bg-gray-100 text-gray-900 border-gray-300") : "bg-gray-100 text-gray-700 border-gray-300"}`} // Estilo para quando status1 é vazio
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const rect = newLeadStatusButtonRef.current.getBoundingClientRect();
-                          setNewLeadStatusMenuState({ open: true, position: { top: rect.bottom + 5, left: rect.left } });
-                        }}
-                      >
-                        {newLeadData.status1 || "Selecione"}
-                      </button>
-                      {newLeadStatusMenuState.open && createPortal(
-                          <StatusMenu
-                              lead={{ status1: newLeadData.status1, id: 'new-lead-mock' }}
-                              onStatusChange={handleSelectNewLeadStatus}
-                              onClose={() => setNewLeadStatusMenuState({ open: false, position: {} })}
-                              position={newLeadStatusMenuState.position}
-                              statusOptions={["FINANCEIRA", "TÉCNICA"]} // Apenas estes status
-                          />,
-                          document.body
-                      )}
-                  </div>
-                  <div><label className="text-sm">Info Extra</label><InfoExtraBadgeSelect value={newLeadData.infoExtra} onChange={(val) => handleNewLeadChange({ target: { name: 'infoExtra', value: val } })} /></div>
-                  <div><label className="text-sm">Observação Geral</label><textarea name="obs" rows="2" value={newLeadData.obs} onChange={handleNewLeadChange} className={inputStyle}></textarea></div>
-                </div>
-              </div>
-              <div className="flex justify-end gap-4 mt-8">
-                <button type="button" onClick={() => setShowNewLeadModal(false)} className="px-6 py-2 rounded-lg bg-gray-200 text-gray-800 font-bold">Cancelar</button>
-                <button type="submit" className="px-6 py-2 rounded-lg bg-green-600 text-white font-bold">Salvar Lead</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-      {showEsteiraModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadein">
-          <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold text-gray-800">Agendar Instalação</h3>
-              <button onClick={handleCancelStatusChange} className="text-gray-500 hover:text-gray-800"><X size={24} /></button>
-            </div>
-            <p className="text-sm text-gray-600 mb-4">Preencha os dados abaixo para concluir o agendamento do lead.</p>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Número do Contrato</label>
-                <input type="text" value={contratoInput} onChange={e => setContratoInput(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Data de Agendamento</label>
-                <input type="date" value={agendarData} onChange={e => setAgendarData(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Turno</label>
-                <select value={agendarTurno} onChange={e => setAgendarTurno(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none bg-white">
-                  <option value="">Selecione o turno</option>
-                  <option value="Manhã">Manhã (08h-12h)</option>
-                  <option value="Tarde">Tarde (13h-18h)</option>
-                </select>
-              </div>
-            </div>
-            <div className="flex justify-end gap-3 mt-6">
-              <button onClick={handleCancelStatusChange} type="button" className="px-4 py-2 rounded-md bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300 transition">Cancelar</button>
-              <button onClick={handleSaveEsteira} type="button" className="px-4 py-2 rounded-md bg-green-600 text-white font-semibold hover:bg-green-700 transition">Salvar e Agendar</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+                        {/* Dados da Venda */}
+                        <div className="space-y-4 p-4 border rounded-lg shadow-sm bg-white">
+                            <h4 className="font-semibold text-lg text-green-600">Dados da Venda</h4>
+                            <div><label className="text-sm">Plano <span className="text-red-500">*</span></label><input name="plano" value={newLeadData.plano} onChange={handleNewLeadChange} className={inputStyle} required /></div>
+                            <div><label className="text-sm">Origem da Venda</label><input name="origemVenda" value={newLeadData.origemVenda} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                            <div><label className="text-sm">Dia do Vencimento</label><input name="diaVencimento" value={newLeadData.diaVencimento} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                            <div><label className="text-sm">Contrato</label><input name="contrato" value={newLeadData.contrato} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                            <div>
+                                <label className="text-sm">Status Inicial <span className="text-red-500">*</span></label>
+                                <div className="relative">
+                                    <button
+                                        type="button"
+                                        ref={newLeadStatusButtonRef}
+                                        className={`px-4 py-1.5 text-sm w-full font-semibold rounded-md transition ${newLeadData.status1 ? (statusPill[newLeadData.status1] || "bg-gray-100 text-gray-900 border-gray-300") : "bg-gray-100 text-gray-700 border-gray-300"}`} // Estilo para quando status1 é vazio
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            const rect = newLeadStatusButtonRef.current.getBoundingClientRect();
+                                            setNewLeadStatusMenuState({ open: true, position: { top: rect.bottom + 5, left: rect.left } });
+                                        }}
+                                    >
+                                        {newLeadData.status1 || "Selecione"}
+                                    </button>
+                                    {newLeadStatusMenuState.open && createPortal(
+                                        <StatusMenu
+                                            lead={{ status1: newLeadData.status1, id: 'new-lead-mock' }}
+                                            onStatusChange={handleSelectNewLeadStatus}
+                                            onClose={() => setNewLeadStatusMenuState({ open: false, position: {} })}
+                                            position={newLeadStatusMenuState.position}
+                                            statusOptions={["FINANCEIRA", "TÉCNICA"]} // Apenas estes status
+                                        />,
+                                        document.body
+                                    )}
+                                </div>
+                            </div>
+                            <div><label className="text-sm">Info Extra</label><InfoExtraBadgeSelect value={newLeadData.infoExtra} onChange={(val) => handleNewLeadChange({ target: { name: 'infoExtra', value: val } })} /></div>
+                            <div><label className="text-sm">Observação Geral</label><textarea name="obs" rows="2" value={newLeadData.obs} onChange={handleNewLeadChange} className={inputStyle}></textarea></div>
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-4 mt-8">
+                        <button type="button" onClick={() => setShowNewLeadModal(false)} className="px-6 py-2 rounded-lg bg-gray-200 text-gray-800 font-bold">Cancelar</button>
+                        <button type="submit" className="px-6 py-2 rounded-lg bg-green-600 text-white font-bold">Salvar Lead</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    {showEsteiraModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadein">
+            <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md">
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-bold text-gray-800">Agendar Instalação</h3>
+                    <button onClick={handleCancelStatusChange} className="text-gray-500 hover:text-gray-800"><X size={24} /></button>
+                </div>
+                <p className="text-sm text-gray-600 mb-4">Preencha os dados abaixo para concluir o agendamento do lead.</p>
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Número do Contrato</label>
+                        <input type="text" value={contratoInput} onChange={e => setContratoInput(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Data de Agendamento</label>
+                        <input type="date" value={agendarData} onChange={e => setAgendarData(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Turno</label>
+                        <select value={agendarTurno} onChange={e => setAgendarTurno(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none bg-white">
+                            <option value="">Selecione o turno</option>
+                            <option value="Manhã">Manhã (08h-12h)</option>
+                            <option value="Tarde">Tarde (13h-18h)</option>
+                        </select>
+                    </div>
+                </div>
+                <div className="flex justify-end gap-3 mt-6">
+                    <button onClick={handleCancelStatusChange} type="button" className="px-4 py-2 rounded-md bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300 transition">Cancelar</button>
+                    <button onClick={handleSaveEsteira} type="button" className="px-4 py-2 rounded-md bg-green-600 text-white font-semibold hover:bg-green-700 transition">Salvar e Agendar</button>
+                </div>
+            </div>
+        </div>
+    )}
+</div>
