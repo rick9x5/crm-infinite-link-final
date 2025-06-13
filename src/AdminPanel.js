@@ -481,7 +481,7 @@ export default function AdminPanel({ leads, onAddLead, onUpdateLead, onDeleteLea
                         </td>
                         <td className="py-2 px-4 text-center align-middle">{lead.dataAgendamento || '-'}</td><td className="py-2 px-4 text-center align-middle">{lead.turnoAgendamento || '-'}</td><td className="py-2 px-4 text-center align-middle" style={{maxWidth:160,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}><span className="cursor-pointer text-gray-600 hover:underline" onClick={e => { e.stopPropagation(); handleOpenObs(lead); }} title={lead.obs}>{lead.obs?.length > 30 ? (lead.obs.substring(0, 30) + "...") : (lead.obs || "-")}</span></td>
                       </tr>
-                      {leadExpandido === lead.id && (<tr><td colSpan={9} className="bg-slate-50 border-b px-4 py-8 transition-all" onClick={e => e.stopPropagation()}>{editando === lead.id ? (<form onSubmit={e => { e.preventDefault(); saveEdit(lead.id); }}><div className="grid md:grid-cols-3 gap-x-6 gap-y-4"><div className="shadow-lg rounded-xl p-6 bg-white border border-green-100 space-y-4"><div className="font-bold text-green-600 text-lg">Dados do Cliente</div><div><label htmlFor="edit-nome" className="block text-sm font-medium text-gray-700">Nome</label><input id="edit-nome" type="text" className={inputStyle} value={leadEdit.nome || ''} onChange={e => setLeadEdit(f => ({...f, nome: e.target.value}))} /></div><div><label htmlFor="edit-cpf" className="block text-sm font-medium text-gray-700">CPF / CNPJ</label><input id="edit-cpf" type="text" className={inputStyle} value={leadEdit.cpf || ''} onChange={e => setLeadEdit(f => ({...f, cpf: e.target.value}))} /></div><div><label htmlFor="edit-email" className="block text-sm font-medium text-gray-700">Email</label><input id="edit-email" type="email" className={inputStyle} value={leadEdit.email || ''} onChange={e => setLeadEdit(f => ({...f, email: e.target.value}))} /></div><div><label htmlFor="edit-nascimento" className="block text-sm font-medium text-gray-700">Data de Nascimento</label><input id="edit-nascimento" type="date" className={inputStyle} value={leadEdit.dataNascimento || ''} onChange={e => setLeadEdit(f => ({...f, dataNascimento: e.target.value}))} /></div><div><label htmlFor="edit-tel1" className="block text-sm font-medium text-gray-700">Telefone 1</label><input id="edit-tel1" type="text" className={inputStyle} value={leadEdit.telefone || ''} onChange={e => setLeadEdit(f => ({...f, telefone: e.target.value}))} /></div><div><label htmlFor="edit-tel2" className="block text-sm font-medium text-gray-700">Telefone 2</label><input id="edit-tel2" type="text" className={inputStyle} value={leadEdit.telefone2 || ''} onChange={e => setLeadEdit(f => ({...f, telefone2: e.target.value}))} /></div></div><div className="shadow-lg rounded-xl p-6 bg-white border border-green-100 space-y-4"><div className="font-bold text-green-600 text-lg">Endereço do Cliente</div><div><label htmlFor="edit-uf" className="block text-sm font-medium text-gray-700">UF</label><input id="edit-uf" type="text" className={inputStyle} value={leadEdit.uf || ''} onChange={e => setLeadEdit(f => ({...f, uf: e.target.value}))} /></div><div><label htmlFor="edit-cep" className="block text-sm font-medium text-gray-700">CEP</label><input id="edit-cep" type="text" className={inputStyle} value={leadEdit.cep || ''} onChange={e => setLeadEdit(f => ({...f, cep: e.target.value}))} /></div><div><label htmlFor="edit-rua" className="block text-sm font-medium text-gray-700">Nome da Rua</label><input id="edit-rua" type="text" className={inputStyle} value={leadEdit.rua || ''} onChange={e => setLeadEdit(f => ({...f, rua: e.target.value}))} /></div><div><label htmlFor="edit-numero" className="block text-sm font-medium text-gray-700">Número</label><input id="edit-numero" type="text" className={inputStyle} value={leadEdit.numero || ''} onChange={e => setLeadEdit(f => ({...f, numero: e.target.value}))} /></div><div><label htmlFor="edit-complemento" className="block text-sm font-medium text-gray-700">Complemento</label><input id="edit-complemento" type="text" className={inputStyle} value={leadEdit.complemento || ''} onChange={e => setLeadEdit(f => ({...f, complemento: e.target.value}))} /></div><div><label htmlFor="edit-bairro" className="block text-sm font-medium text-gray-700">Bairro</label><input id="edit-bairro" type="text" className={inputStyle} value={leadEdit.bairro || ''} onChange={e => setLeadEdit(f => ({...f, bairro: e.target.value}))} /></div><div><label htmlFor="edit-cidade" className="block text-sm font-medium text-gray-700">Cidade</label><input id="edit-cidade" type="text" className={inputStyle} value={leadEdit.cidade || ''} onChange={e => setLeadEdit(f => ({...f, cidade: e.target.value}))} /></div><div><label htmlFor="edit-pontoReferencia" className="block text-sm font-medium text-gray-700">Ponto de Referência</label><input id="edit-pontoReferencia" type="text" className={inputStyle} value={leadEdit.pontoReferencia || ''} onChange={e => setLeadEdit(f => ({...f, pontoReferencia: e.target.value}))} /></div><div><label htmlFor="edit-linkLocalizacao" className="block text-sm font-medium text-gray-700">Link de Localização</label><input id="edit-linkLocalizacao" type="text" className={inputStyle} value={leadEdit.linkLocalizacao || ''} onChange={e => setLeadEdit(f => ({...f, linkLocalizacao: e.target.value}))} /></div><div><label htmlFor="edit-obsEndereco" className="block text-sm font-medium text-gray-700">Obs. Endereço</label><textarea id="edit-obsEndereco" className={inputStyle} rows="2" value={leadEdit.obsEndereco || ''} onChange={e => setLeadEdit(f => ({...f, obsEndereco: e.target.value}))}></textarea></div></div><div className="shadow-lg rounded-xl p-6 bg-white border border-green-100 space-y-4"><div className="font-bold text-green-600 text-lg">Dados da Venda</div><div><label htmlFor="edit-plano" className="block text-sm font-medium text-gray-700">Plano</label><input id="edit-plano" type="text" className={inputStyle} value={leadEdit.plano || ''} onChange={e => setLeadEdit(f => ({...f, plano: e.target.value}))} /></div>{/* Campo Vendedor Removido */}<div><label htmlFor="edit-origemVenda" className="block text-sm font-medium text-gray-700">Origem da Venda</label><input id="edit-origemVenda" type="text" className={inputStyle} value={leadEdit.origemVenda || ''} onChange={e => setLeadEdit(f => ({...f, origemVenda: e.target.value}))} /></div><div><label htmlFor="edit-diaVencimento" className="block text-sm font-medium text-gray-700">Dia do Vencimento</label><input id="edit-diaVencimento" type="text" className={inputStyle} value={leadEdit.diaVencimento || ''} onChange={e => setLeadEdit(f => ({...f, diaVencimento: e.target.value}))} /></div><div><label htmlFor="edit-contrato" className="block text-sm font-medium text-gray-700">Contrato</label><input id="edit-contrato" type="text" className={inputStyle} value={leadEdit.contrato || ''} onChange={e => setLeadEdit(f => ({...f, contrato: e.target.value}))} /></div><div><label htmlFor="edit-infoExtra" className="block text-sm font-medium text-gray-700">Info Extra</label><InfoExtraBadgeSelect value={leadEdit.infoExtra} onChange={handleInfoExtraChangeEdit} /></div></div></div><div className="flex justify-center gap-4 mt-8"><button className="px-8 py-2 rounded-lg bg-green-600 text-white font-bold hover:bg-green-700 transition shadow-lg" type="submit">Salvar</button><button className="px-8 py-2 rounded-lg bg-gray-300 text-gray-800 font-bold hover:bg-gray-400 transition" type="button" onClick={cancelEdit}>Cancelar</button></div></form>) : (<><div className="grid md:grid-cols-3 gap-6"><div className="bg-white shadow-md rounded-lg p-5 space-y-2"><h3 className="font-bold mb-3 text-green-600 text-lg">Dados do Cliente</h3><div><span className="font-semibold">Nome / Razão Social:</span> {lead.nome}</div><div><span className="font-semibold">CPF / CNPJ:</span> {lead.cpf}</div><div><span className="font-semibold">Email:</span> {lead.email || "-"}</div><div><span className="font-semibold">Data de Nascimento:</span> {lead.dataNascimento || "-"}</div><div><span className="font-semibold">Telefone 1:</span> {lead.telefone || "-"}</div><div><span className="font-semibold">Telefone 2:</span> {lead.telefone2 || "-"}</div></div><div className="bg-white shadow-md rounded-lg p-5 space-y-2"><h3 className="font-bold mb-3 text-green-600 text-lg">Endereço do Cliente</h3><div><span className="font-semibold">UF:</span> {lead.uf}</div><div><span className="font-semibold">CEP:</span> {lead.cep}</div><div><span className="font-semibold">Nome da Rua:</span> {lead.rua}</div><div><span className="font-semibold">Número:</span> {lead.numero}</div><div><span className="font-semibold">Complemento:</span> {lead.complemento}</div><div><span className="font-semibold">Bairro:</span> {lead.bairro}</div><div><span className="font-semibold">Cidade:</span> {lead.cidade}</div><div><span className="font-semibold">Ponto de Referência:</span> {lead.pontoReferencia || "-"}</div><div className="flex items-center gap-2"><span className="font-semibold">Link de Localização:</span>{lead.linkLocalizacao ? (<><a className="underline text-blue-700" href={lead.linkLocalizacao} target="_blank" rel="noopener noreferrer">Abrir Mapa</a><button type="button" title="Copiar link" className="text-blue-700" onClick={(e) => { e.stopPropagation(); copyToClipboard(lead.linkLocalizacao); }}><Copy size={18} /></button></>) : <span>-</span>}</div><div><span className="font-semibold">Obs. Endereço:</span> {lead.obsEndereco || "-"}</div></div><div className="bg-white shadow-md rounded-lg p-5 space-y-2"><h3 className="font-bold mb-3 text-green-600 text-lg">Dados da Venda</h3><div><span className="font-semibold">Data do Cadastro:</span> {lead.dataCadastro.split('-').reverse().join('/')}</div><div className="flex items-center gap-2"><ShoppingBag size={16}/><span className="font-semibold">Vendedor:</span> {lead.vendedor}</div><div><span className="font-semibold">Plano:</span> {lead.plano}</div><div><span className="font-semibold">Origem da venda:</span> {lead.origemVenda}</div><div><span className="font-semibold">Dia do Vencimento:</span> {lead.diaVencimento}</div><div><span className="font-semibold">Agendamento:</span> {lead.dataAgendamento} - {lead.turnoAgendamento}</div></div></div>{/* NOVA SEÇÃO DE OBSERVAÇÃO PARA PRÉ-VENDAS (diferente da Esteira) */}{lead.obs && (<div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm cursor-pointer" onClick={(e) => {e.stopPropagation(); handleOpenObs(lead);}}><h3 className="font-bold mb-2 text-gray-700 text-lg flex items-center gap-2"><MessageSquareText size={20} className="text-gray-500" /> Observações</h3><p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{lead.obs}</p></div>)}{/* ... DADOS EXPANDIDOS ... */}<div className="mt-8 flex justify-center"><button className="px-8 py-2 rounded-lg bg-green-600 text-white font-bold hover:bg-green-700 transition shadow-lg" onClick={(e) => {e.stopPropagation(); startEdit(lead)}}>Editar Ficha</button></div></>)}</td></tr>)}
+                      {leadExpandido === lead.id && (<tr><td colSpan={9} className="bg-slate-50 border-b px-4 py-8 transition-all" onClick={e => e.stopPropagation()}>{editando === lead.id ? (<form onSubmit={e => { e.preventDefault(); saveEdit(lead.id); }}><div className="grid md:grid-cols-3 gap-x-6 gap-y-4"><div className="shadow-lg rounded-xl p-6 bg-white border border-green-100 space-y-4"><div className="font-bold text-green-600 text-lg">Dados do Cliente</div><div><label htmlFor="edit-nome" className="block text-sm font-medium text-gray-700">Nome</label><input id="edit-nome" type="text" className={inputStyle} value={leadEdit.nome || ''} onChange={e => setLeadEdit(f => ({...f, nome: e.target.value}))} /></div><div><label htmlFor="edit-cpf" className="block text-sm font-medium text-gray-700">CPF / CNPJ</label><input id="edit-cpf" type="text" className={inputStyle} value={leadEdit.cpf || ''} onChange={e => setLeadEdit(f => ({...f, cpf: e.target.value}))} /></div><div><label htmlFor="edit-email" className="block text-sm font-medium text-gray-700">Email</label><input id="edit-email" type="email" className={inputStyle} value={leadEdit.email || ''} onChange={e => setLeadEdit(f => ({...f, email: e.target.value}))} /></div><div><label htmlFor="edit-nascimento" className="block text-sm font-medium text-gray-700">Data de Nascimento</label><input id="edit-nascimento" type="date" className={inputStyle} value={leadEdit.dataNascimento || ''} onChange={e => setLeadEdit(f => ({...f, dataNascimento: e.target.value}))} /></div><div><label htmlFor="edit-tel1" className="block text-sm font-medium text-gray-700">Telefone 1</label><input id="edit-tel1" type="text" className={inputStyle} value={leadEdit.telefone || ''} onChange={e => setLeadEdit(f => ({...f, telefone: e.target.value}))} /></div><div><label htmlFor="edit-tel2" className="block text-sm font-medium text-gray-700">Telefone 2</label><input id="edit-tel2" type="text" className={inputStyle} value={leadEdit.telefone2 || ''} onChange={e => setLeadEdit(f => ({...f, telefone2: e.target.value}))} /></div></div><div className="shadow-lg rounded-xl p-6 bg-white border border-green-100 space-y-4"><div className="font-bold text-green-600 text-lg">Endereço do Cliente</div><div><label htmlFor="edit-uf" className="block text-sm font-medium text-gray-700">UF</label><input id="edit-uf" type="text" className={inputStyle} value={leadEdit.uf || ''} onChange={e => setLeadEdit(f => ({...f, uf: e.target.value}))} /></div><div><label htmlFor="edit-cep" className="block text-sm font-medium text-gray-700">CEP</label><input id="edit-cep" type="text" className={inputStyle} value={leadEdit.cep || ''} onChange={e => setLeadEdit(f => ({...f, cep: e.target.value}))} /></div><div><label htmlFor="edit-rua" className="block text-sm font-medium text-gray-700">Rua</label><input id="edit-rua" type="text" className={inputStyle} value={leadEdit.rua || ''} onChange={e => setLeadEdit(f => ({...f, rua: e.target.value}))} /></div><div><label htmlFor="edit-numero" className="block text-sm font-medium text-gray-700">Número</label><input id="edit-numero" type="text" className={inputStyle} value={leadEdit.numero || ''} onChange={e => setLeadEdit(f => ({...f, numero: e.target.value}))} /></div><div><label htmlFor="edit-complemento" className="block text-sm font-medium text-gray-700">Complemento</label><input id="edit-complemento" type="text" className={inputStyle} value={leadEdit.complemento || ''} onChange={e => setLeadEdit(f => ({...f, complemento: e.target.value}))} /></div><div><label htmlFor="edit-bairro" className="block text-sm font-medium text-gray-700">Bairro</label><input id="edit-bairro" type="text" className={inputStyle} value={leadEdit.bairro || ''} onChange={e => setLeadEdit(f => ({...f, bairro: e.target.value}))} /></div><div><label htmlFor="edit-cidade" className="block text-sm font-medium text-gray-700">Cidade</label><input id="edit-cidade" type="text" className={inputStyle} value={leadEdit.cidade || ''} onChange={e => setLeadEdit(f => ({...f, cidade: e.target.value}))} /></div><div><label htmlFor="edit-pontoReferencia" className="block text-sm font-medium text-gray-700">Ponto de Referência</label><input id="edit-pontoReferencia" type="text" className={inputStyle} value={leadEdit.pontoReferencia || ''} onChange={e => setLeadEdit(f => ({...f, pontoReferencia: e.target.value}))} /></div><div><label htmlFor="edit-linkLocalizacao" className="block text-sm font-medium text-gray-700">Link de Localização</label><input id="edit-linkLocalizacao" type="text" className={inputStyle} value={leadEdit.linkLocalizacao || ''} onChange={e => setLeadEdit(f => ({...f, linkLocalizacao: e.target.value}))} /></div><div><label htmlFor="edit-obsEndereco" className="block text-sm font-medium text-gray-700">Obs. Endereço</label><textarea id="edit-obsEndereco" className={inputStyle} rows="2" value={leadEdit.obsEndereco || ''} onChange={e => setLeadEdit(f => ({...f, obsEndereco: e.target.value}))}></textarea></div></div><div className="shadow-lg rounded-xl p-6 bg-white border border-green-100 space-y-4"><div className="font-bold text-green-600 text-lg">Dados da Venda</div><div><label htmlFor="edit-plano" className="block text-sm font-medium text-gray-700">Plano</label><input id="edit-plano" type="text" className={inputStyle} value={leadEdit.plano || ''} onChange={e => setLeadEdit(f => ({...f, plano: e.target.value}))} /></div>{/* Campo Vendedor Removido */}<div><label htmlFor="edit-origemVenda" className="block text-sm font-medium text-gray-700">Origem da Venda</label><input id="edit-origemVenda" type="text" className={inputStyle} value={leadEdit.origemVenda || ''} onChange={e => setLeadEdit(f => ({...f, origemVenda: e.target.value}))} /></div><div><label htmlFor="edit-diaVencimento" className="block text-sm font-medium text-gray-700">Dia do Vencimento</label><input id="edit-diaVencimento" type="text" className={inputStyle} value={leadEdit.diaVencimento || ''} onChange={e => setLeadEdit(f => ({...f, diaVencimento: e.target.value}))} /></div><div><label htmlFor="edit-contrato" className="block text-sm font-medium text-gray-700">Contrato</label><input id="edit-contrato" type="text" className={inputStyle} value={leadEdit.contrato || ''} onChange={e => setLeadEdit(f => ({...f, contrato: e.target.value}))} /></div><div><label htmlFor="edit-infoExtra" className="block text-sm font-medium text-gray-700">Info Extra</label><InfoExtraBadgeSelect value={leadEdit.infoExtra} onChange={handleInfoExtraChangeEdit} /></div></div></div><div className="flex justify-center gap-4 mt-8"><button className="px-8 py-2 rounded-lg bg-green-600 text-white font-bold hover:bg-green-700 transition shadow-lg" type="submit">Salvar</button><button className="px-8 py-2 rounded-lg bg-gray-300 text-gray-800 font-bold hover:bg-gray-400 transition" type="button" onClick={cancelEdit}>Cancelar</button></div></form>) : (<><div className="grid md:grid-cols-3 gap-6"><div className="bg-white shadow-md rounded-lg p-5 space-y-2"><h3 className="font-bold mb-3 text-green-600 text-lg">Dados do Cliente</h3><div><span className="font-semibold">Nome / Razão Social:</span> {lead.nome}</div><div><span className="font-semibold">CPF / CNPJ:</span> {lead.cpf}</div><div><span className="font-semibold">Email:</span> {lead.email || "-"}</div><div><span className="font-semibold">Data de Nascimento:</span> {lead.dataNascimento || "-"}</div><div><span className="font-semibold">Telefone 1:</span> {lead.telefone || "-"}</div><div><span className="font-semibold">Telefone 2:</span> {lead.telefone2 || "-"}</div></div><div className="bg-white shadow-md rounded-lg p-5 space-y-2"><h3 className="font-bold mb-3 text-green-600 text-lg">Endereço do Cliente</h3><div><span className="font-semibold">UF:</span> {lead.uf}</div><div><span className="font-semibold">CEP:</span> {lead.cep}</div><div><span className="font-semibold">Nome da Rua:</span> {lead.rua}</div><div><span className="font-semibold">Número:</span> {lead.numero}</div><div><span className="font-semibold">Complemento:</span> {lead.complemento}</div><div><span className="font-semibold">Bairro:</span> {lead.bairro}</div><div><span className="font-semibold">Cidade:</span> {lead.cidade}</div><div><span className="font-semibold">Ponto de Referência:</span> {lead.pontoReferencia || "-"}</div><div className="flex items-center gap-2"><span className="font-semibold">Link de Localização:</span>{lead.linkLocalizacao ? (<><a className="underline text-blue-700" href={lead.linkLocalizacao} target="_blank" rel="noopener noreferrer">Abrir Mapa</a><button type="button" title="Copiar link" className="text-blue-700" onClick={(e) => { e.stopPropagation(); copyToClipboard(lead.linkLocalizacao); }}><Copy size={18} /></button></>) : <span>-</span>}</div><div><span className="font-semibold">Obs. Endereço:</span> {lead.obsEndereco || "-"}</div></div><div className="bg-white shadow-md rounded-lg p-5 space-y-2"><h3 className="font-bold mb-3 text-green-600 text-lg">Dados da Venda</h3><div><span className="font-semibold">Data do Cadastro:</span> {lead.dataCadastro.split('-').reverse().join('/')}</div><div className="flex items-center gap-2"><ShoppingBag size={16}/><span className="font-semibold">Vendedor:</span> {lead.vendedor}</div><div><span className="font-semibold">Plano:</span> {lead.plano}</div><div><span className="font-semibold">Origem da venda:</span> {lead.origemVenda}</div><div><span className="font-semibold">Dia do Vencimento:</span> {lead.diaVencimento}</div><div><span className="font-semibold">Agendamento:</span> {lead.dataAgendamento} - {lead.turnoAgendamento}</div></div></div>{/* NOVA SEÇÃO DE OBSERVAÇÃO PARA PRÉ-VENDAS (diferente da Esteira) */}{lead.obs && (<div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm cursor-pointer" onClick={(e) => {e.stopPropagation(); handleOpenObs(lead);}}><h3 className="font-bold mb-2 text-gray-700 text-lg flex items-center gap-2"><MessageSquareText size={20} className="text-gray-500" /> Observações</h3><p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{lead.obs}</p></div>)}{/* ... DADOS EXPANDIDOS ... */}<div className="mt-8 flex justify-center"><button className="px-8 py-2 rounded-lg bg-green-600 text-white font-bold hover:bg-green-700 transition shadow-lg" onClick={(e) => {e.stopPropagation(); startEdit(lead)}}>Editar Ficha</button></div></>)}</td></tr>)}
                 </React.Fragment>
               ))}
             </tbody>
@@ -505,116 +505,108 @@ export default function AdminPanel({ leads, onAddLead, onUpdateLead, onDeleteLea
       </button>
 
       {/* NOVO MODAL DE CADASTRO DE LEAD - REESTRUTURADO */}
-       <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 animate-fadein">
-            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-5xl max-h-[90vh] overflow-y-auto">
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-2xl font-bold text-gray-800">Cadastrar Novo Lead</h3>
-                    <button onClick={() => setShowNewLeadModal(false)} className="text-gray-500 hover:text-gray-800"><X size={28} /></button>
-                </div>
-                <form onSubmit={handleSaveNewLead}>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {/* Dados Pessoais */}
-                        <div className="space-y-4 p-4 border rounded-lg shadow-sm bg-white">
-                            <h4 className="font-semibold text-lg text-green-600">Dados Pessoais</h4>
-                            <div><label className="text-sm">Nome Completo <span className="text-red-500">*</span></label><input name="nome" value={newLeadData.nome} onChange={handleNewLeadChange} className={inputStyle} required /></div>
-                            <div><label className="text-sm">CPF <span className="text-red-500">*</span></label><input name="cpf" value={newLeadData.cpf} onChange={handleNewLeadChange} className={inputStyle} required /></div>
-                            <div><label className="text-sm">Email</label><input name="email" type="email" value={newLeadData.email} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                            <div><label className="text-sm">Data de Nascimento</label><input name="dataNascimento" type="date" value={newLeadData.dataNascimento} onChange={e => handleNewLeadChange({ target: { name: 'dataNascimento', value: e.target.value } })} className={inputStyle} /></div>
-                            <div><label className="text-sm">Telefone 1 <span className="text-red-500">*</span></label><input name="telefone" value={newLeadData.telefone} onChange={handleNewLeadChange} className={inputStyle} required /></div>
-                            <div><label className="text-sm">Telefone 2</label><input name="telefone2" value={newLeadData.telefone2} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                        </div>
+      {showNewLeadModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 animate-fadein">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-5xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-bold text-gray-800">Cadastrar Novo Lead</h3>
+              <button onClick={() => setShowNewLeadModal(false)} className="text-gray-500 hover:text-gray-800"><X size={28} /></button>
+            </div>
+            <form onSubmit={handleSaveNewLead}>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+                {/* Dados Pessoais */}
+                <div className="space-y-4 p-4 border rounded-lg shadow-sm bg-white">
+                  <h4 className="font-semibold text-lg text-green-600">Dados Pessoais</h4>
+                  <div><label className="text-sm">Nome Completo <span className="text-red-500">*</span></label><input name="nome" value={newLeadData.nome} onChange={handleNewLeadChange} className={inputStyle} required /></div>
+                  <div><label className="text-sm">CPF <span className="text-red-500">*</span></label><input name="cpf" value={newLeadData.cpf} onChange={handleNewLeadChange} className={inputStyle} required /></div>
+                  <div><label className="text-sm">Email</label><input name="email" type="email" value={newLeadData.email} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                  <div><label className="text-sm">Data de Nascimento</label><input name="dataNascimento" type="date" value={newLeadData.dataNascimento} onChange={e => handleNewLeadChange({ target: { name: 'dataNascimento', value: e.target.value } })} className={inputStyle} /></div>
+                  <div><label className="text-sm">Telefone 1 <span className="text-red-500">*</span></label><input name="telefone" value={newLeadData.telefone} onChange={handleNewLeadChange} className={inputStyle} required /></div>
+                  <div><label className="text-sm">Telefone 2</label><input name="telefone2" value={newLeadData.telefone2} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                </div>
 
-                        {/* Endereço */}
-                        <div className="space-y-4 p-4 border rounded-lg shadow-sm bg-white">
-                            <h4 className="font-semibold text-lg text-green-600">Endereço</h4>
-                            <div><label className="text-sm">UF</label><input name="uf" value={newLeadData.uf} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                            <div><label className="text-sm">CEP</label><input name="cep" value={newLeadData.cep} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                            <div><label className="text-sm">Rua</label><input name="rua" value={newLeadData.rua} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                            <div><label className="text-sm">Número</label><input name="numero" value={newLeadData.numero} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                            <div><label className="text-sm">Complemento</label><input name="complemento" value={newLeadData.complemento} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                            <div><label className="text-sm">Bairro</label><input name="bairro" value={newLeadData.bairro} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                            <div><label className="text-sm">Cidade</label><input name="cidade" value={newLeadData.cidade} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                            <div><label className="text-sm">Ponto de Referência</label><input name="pontoReferencia" value={newLeadData.pontoReferencia} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                            <div><label className="text-sm">Link de Localização</label><input name="linkLocalizacao" value={newLeadData.linkLocalizacao} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                            <div><label className="text-sm">Obs. Endereço</label><textarea name="obsEndereco" rows="2" value={newLeadData.obsEndereco} onChange={handleNewLeadChange} className={inputStyle}></textarea></div>
-                        </div>
+                {/* Endereço */}
+                <div className="space-y-4 p-4 border rounded-lg shadow-sm bg-white">
+                  <h4 className="font-semibold text-lg text-green-600">Endereço</h4>
+                  <div><label className="text-sm">UF</label><input name="uf" value={newLeadData.uf} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                  <div><label className="text-sm">CEP</label><input name="cep" value={newLeadData.cep} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                  <div><label className="text-sm">Rua</label><input name="rua" value={newLeadData.rua} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                  <div><label className="text-sm">Número</label><input name="numero" value={newLeadData.numero} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                  <div><label className="text-sm">Complemento</label><input name="complemento" value={newLeadData.complemento} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                  <div><label className="text-sm">Bairro</label><input name="bairro" value={newLeadData.bairro} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                  <div><label className="text-sm">Cidade</label><input name="cidade" value={newLeadData.cidade} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                  <div><label className="text-sm">Ponto de Referência</label><input name="pontoReferencia" value={newLeadData.pontoReferencia} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                  <div><label className="text-sm">Link de Localização</label><input name="linkLocalizacao" value={newLeadData.linkLocalizacao} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                  <div><label className="text-sm">Obs. Endereço</label><textarea name="obsEndereco" rows="2" value={newLeadData.obsEndereco} onChange={handleNewLeadChange} className={inputStyle}></textarea></div>
+                </div>
 
-                        {/* Dados da Venda */}
-                        <div className="space-y-4 p-4 border rounded-lg shadow-sm bg-white">
-                            <h4 className="font-semibold text-lg text-green-600">Dados da Venda</h4>
-                            <div><label className="text-sm">Plano <span className="text-red-500">*</span></label><input name="plano" value={newLeadData.plano} onChange={handleNewLeadChange} className={inputStyle} required /></div>
-                            <div><label className="text-sm">Origem da Venda</label><input name="origemVenda" value={newLeadData.origemVenda} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                            <div><label className="text-sm">Dia do Vencimento</label><input name="diaVencimento" value={newLeadData.diaVencimento} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                            <div><label className="text-sm">Contrato</label><input name="contrato" value={newLeadData.contrato} onChange={handleNewLeadChange} className={inputStyle} /></div>
-                            <div>
-                                <label className="text-sm">Status Inicial <span className="text-red-500">*</span></label>
-                                <div className="relative">
-                                    <button
-                                        type="button"
-                                        ref={newLeadStatusButtonRef}
-                                        className={`px-4 py-1.5 text-sm w-full font-semibold rounded-md transition ${newLeadData.status1 ? (statusPill[newLeadData.status1] || "bg-gray-100 text-gray-900 border-gray-300") : "bg-gray-100 text-gray-700 border-gray-300"}`} // Estilo para quando status1 é vazio
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            const rect = newLeadStatusButtonRef.current.getBoundingClientRect();
-                                            setNewLeadStatusMenuState({ open: true, position: { top: rect.bottom + 5, left: rect.left } });
-                                        }}
-                                    >
-                                        {newLeadData.status1 || "Selecione"}
-                                    </button>
-                                    {newLeadStatusMenuState.open && createPortal(
-                                        <StatusMenu
-                                            lead={{ status1: newLeadData.status1, id: 'new-lead-mock' }}
-                                            onStatusChange={handleSelectNewLeadStatus}
-                                            onClose={() => setNewLeadStatusMenuState({ open: false, position: {} })}
-                                            position={newLeadStatusMenuState.position}
-                                            statusOptions={["FINANCEIRA", "TÉCNICA"]} // Apenas estes status
-                                        />,
-                                        document.body
-                                    )}
-                                </div>
-                            </div>
-                            <div><label className="text-sm">Info Extra</label><InfoExtraBadgeSelect value={newLeadData.infoExtra} onChange={(val) => handleNewLeadChange({ target: { name: 'infoExtra', value: val } })} /></div>
-                            <div><label className="text-sm">Observação Geral</label><textarea name="obs" rows="2" value={newLeadData.obs} onChange={handleNewLeadChange} className={inputStyle}></textarea></div>
-                        </div>
-                    </div>
-                    <div className="flex justify-end gap-4 mt-8">
-                        <button type="button" onClick={() => setShowNewLeadModal(false)} className="px-6 py-2 rounded-lg bg-gray-200 text-gray-800 font-bold">Cancelar</button>
-                        <button type="submit" className="px-6 py-2 rounded-lg bg-green-600 text-white font-bold">Salvar Lead</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    {showEsteiraModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadein">
-            <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-bold text-gray-800">Agendar Instalação</h3>
-                    <button onClick={handleCancelStatusChange} className="text-gray-500 hover:text-gray-800"><X size={24} /></button>
-                </div>
-                <p className="text-sm text-gray-600 mb-4">Preencha os dados abaixo para concluir o agendamento do lead.</p>
-                <div className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Número do Contrato</label>
-                        <input type="text" value={contratoInput} onChange={e => setContratoInput(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none" />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Data de Agendamento</label>
-                        <input type="date" value={agendarData} onChange={e => setAgendarData(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none" />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Turno</label>
-                        <select value={agendarTurno} onChange={e => setAgendarTurno(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none bg-white">
-                            <option value="">Selecione o turno</option>
-                            <option value="Manhã">Manhã (08h-12h)</option>
-                            <option value="Tarde">Tarde (13h-18h)</option>
-                        </select>
-                    </div>
-                </div>
-                <div className="flex justify-end gap-3 mt-6">
-                    <button onClick={handleCancelStatusChange} type="button" className="px-4 py-2 rounded-md bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300 transition">Cancelar</button>
-                    <button onClick={handleSaveEsteira} type="button" className="px-4 py-2 rounded-md bg-green-600 text-white font-semibold hover:bg-green-700 transition">Salvar e Agendar</button>
-                </div>
-            </div>
-        </div>
-    )}
-</div>
+                {/* Dados da Venda */}
+                <div className="space-y-4 p-4 border rounded-lg shadow-sm bg-white">
+                  <h4 className="font-semibold text-lg text-green-600">Dados da Venda</h4>
+                  <div><label className="text-sm">Plano <span className="text-red-500">*</span></label><input name="plano" value={newLeadData.plano} onChange={handleNewLeadChange} className={inputStyle} required /></div>
+                  <div><label className="text-sm">Origem da Venda</label><input name="origemVenda" value={newLeadData.origemVenda} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                  <div><label className="text-sm">Dia do Vencimento</label><input name="diaVencimento" value={newLeadData.diaVencimento} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                  <div><label className="text-sm">Contrato</label><input name="contrato" value={newLeadData.contrato} onChange={handleNewLeadChange} className={inputStyle} /></div>
+                  <div>
+                    <label className="text-sm">Status Inicial <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        ref={newLeadStatusButtonRef}
+                        className={`px-4 py-1.5 text-sm w-full font-semibold rounded-md transition ${newLeadData.status1 ? (statusPill[newLeadData.status1] || "bg-gray-100 text-gray-900 border-gray-300") : "bg-gray-100 text-gray-700 border-gray-300"}`} // Estilo para quando status1 é vazio
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const rect = newLeadStatusButtonRef.current.getBoundingClientRect();
+                          setNewLeadStatusMenuState({ open: true, position: { top: rect.bottom + 5, left: rect.left } });
+                        }}
+                      >
+                        {newLeadData.status1 || "Selecione"}
+                      </button>
+                      {newLeadStatusMenuState.open && createPortal(
+                          <StatusMenu
+                              lead={{ status1: newLeadData.status1, id: 'new-lead-mock' }}
+                              onStatusChange={handleSelectNewLeadStatus}
+                              onClose={() => setNewLeadStatusMenuState({ open: false, position: {} })}
+                              position={newLeadStatusMenuState.position}
+                              statusOptions={["FINANCEIRA", "TÉCNICA"]} // Apenas estes status
+                          />,
+                          document.body
+                      )}
+                  </div>
+                  <div><label className="text-sm">Info Extra</label><InfoExtraBadgeSelect value={newLeadData.infoExtra} onChange={(val) => handleNewLeadChange({ target: { name: 'infoExtra', value: val } })} /></div>
+                  <div><label className="text-sm">Observação Geral</label><textarea name="obs" rows="2" value={newLeadData.obs} onChange={handleNewLeadChange} className={inputStyle}></textarea></div>
+                </div>
+              </div>
+              <div className="flex justify-end gap-4 mt-8">
+                <button type="button" onClick={() => setShowNewLeadModal(false)} className="px-6 py-2 rounded-lg bg-gray-200 text-gray-800 font-bold">Cancelar</button>
+                <button type="submit" className="px-6 py-2 rounded-lg bg-green-600 text-white font-bold">Salvar Lead</button>
+              </div>
+            </form>
+           </div> {/* AQUI ESTÁ O FECHAMENTO DO showNewLeadModal */}
+        </div>
+      )}
+      {showEsteiraModal && ( // Início do showEsteiraModal
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadein">
+          <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-gray-800">Agendar Instalação</h3>
+              <button onClick={handleCancelStatusChange} className="text-gray-500 hover:text-gray-800"><X size={24} /></button>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">Preencha os dados abaixo para concluir o agendamento do lead.</p>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Número do Contrato</label>
+                <input type="text" value={contratoInput} onChange={e => setContratoInput(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Data de Agendamento</label>
+                <input type="date" value={agendarData} onChange={e => setAgendarData(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Turno</label>
+                <select value={agendarTurno} onChange={e => setAgendarTurno(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none bg-white"><option value="">Selecione o turno</option><option value="Manhã">Manhã (08h-12h)</option><option value="Tarde">Tarde (13h-18h)</option></select></div>
+            </div>
+            <div className="flex justify-end gap-3 mt-6"><button onClick={handleCancelStatusChange} type="button" className="px-4 py-2 rounded-md bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300 transition">Cancelar</button><button onClick={handleSaveEsteira} type="button" className="px-4 py-2 rounded-md bg-green-600 text-white font-semibold hover:bg-green-700 transition">Salvar e Agendar</button></div></div></div>)}
+    </div>
+  );
+}
