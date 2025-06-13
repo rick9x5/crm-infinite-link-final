@@ -21,10 +21,11 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
+    if (!origin) return callback(null, true); 
     if (allowedOrigins.includes(origin) || allowedOrigins.some(regex => regex instanceof RegExp && regex.test(origin))) {
       return callback(null, true);
     }
+    console.error('CORS blocked origin:', origin); 
     return callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
