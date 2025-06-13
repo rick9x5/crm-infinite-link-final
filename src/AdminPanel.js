@@ -76,16 +76,20 @@ function resumoPorStatus(leads) {
     }
     return counts;
 }
-
-// CORRIGIDO: Agora retorna null se a data for inválida, para não usar 1970
+// CORRIGIDO: Agora retorna null se a data for inválida, para não usar 1970 e evitar NaN ou data incorreta
 function parseISODate(str) {
   if (!str || typeof str !== 'string' || !str.match(/^\d{4}-\d{2}-\d{2}$/)) {
-    return null; // Retorna null para datas inválidas ou undefined
+    return null; // Retorna null para strings vazias, undefined ou formatos inválidos
   }
   const [year, month, day] = str.split('-').map(Number);
-  // Cuidado com fusos horários, cria data UTC para evitar problemas
-  return new Date(Date.UTC(year, month - 1, day));
+  // Cuidado com fusos horários: Cria data UTC para evitar problemas com fuso horário local
+  // Se o backend salva em UTC, comparar com UTC ajuda.
+  const date = new Date(Date.UTC(year, month - 1, day));
+  // Verifica se a data é válida (ex: new Date('invalid date string') retorna 'Invalid Date')
+  return isNaN(date.getTime()) ? null : date;
 }
+// FUNÇÃO MOVIDA PARA DENTRO DO COMPONENTE AdminPanel
+// function copyToClipboard(text) { navigator.clipboard.writeText(text); } 
 
 // Componente do Menu de Status com Portal (MODIFICADO para aceitar statusOptions)
 function StatusMenu({ lead, onStatusChange, onClose, position, statusOptions }) {
@@ -141,7 +145,8 @@ export default function AdminPanel({ leads, onAddLead, onUpdateLead, onDeleteLea
   const [agendarData, setAgendarData] = useState("");
   const [agendarTurno, setAgendarTurno] = useState("");
   const [contratoInput, setContratoInput] = useState("");
-  const [statusFiltroResumo, setStatusFiltroResumo] = useState('total'); // MUDADO PARA 'total' POR PADRÃO
+  // Estado para o filtro de resumo, inicia em 'total'
+  const [statusFiltroResumo, setStatusFiltroResumo] = useState('total'); 
   const [showNewLeadModal, setShowNewLeadModal] = useState(false);
   const [newLeadData, setNewLeadData] = useState(initialNewLeadState);
   
@@ -157,14 +162,18 @@ export default function AdminPanel({ leads, onAddLead, onUpdateLead, onDeleteLea
   
   function handleOk() { setAppliedRange(range); setShowPicker(false); }
   function handleCancel() { setRange(appliedRange); setShowPicker(false); }
+
+  // FUNÇÃO MOVIDA PARA DENTRO DO COMPONENTE
+  function copyToClipboard(text) {
+    navigator.clipboard.writeText(text);
+  }
   
   // LOGS PARA DEPURAR - AGORA ELES DEVEM APARECER!
   console.log('AdminPanel - Leads recebidos (prop):', leads);
   console.log('AdminPanel - appliedRange (Filtro de Data):', appliedRange); // Log da data do filtro
   
   const leadsFiltradosPorDataEBusca = leads.filter(lead => {
-    // CORRIGIDO: parseISODate agora retorna null para inválidos
-    const d = parseISODate(lead.dataCadastro); 
+    const d = parseISODate(lead.dataCadastro);
     const start = new Date(appliedRange[0].startDate);
     const end = new Date(appliedRange[0].endDate);
     start.setHours(0, 0, 0, 0); // Garante o início do dia
@@ -186,8 +195,9 @@ export default function AdminPanel({ leads, onAddLead, onUpdateLead, onDeleteLea
     console.log(`  Resultado FINAL do filtro para este lead: ${dataOk && buscaOk}`);
     console.log(`-------------------------------------------`);
 
-    // Agora mostra TODOS os leads para depuração, removendo o filtro de 'AGENDADO'
-    return dataOk && buscaOk; // <--- AGORA MOSTRA TODOS OS LEADS (EXCETO SE FILTRADO POR OUTRO STATUS)
+    // AGORA DEVOLVEMOS O FILTRO lead.status1 !== 'AGENDADO'
+    // Esta tela é "Pré-Vendas", então não deve mostrar leads já AGENDADOS
+    return dataOk && buscaOk && lead.status1 !== 'AGENDADO'; 
   });
 
   const resumo = resumoPorStatus(leadsFiltradosPorDataEBusca);
@@ -195,15 +205,15 @@ export default function AdminPanel({ leads, onAddLead, onUpdateLead, onDeleteLea
   // LOGS PARA DEPURAR
   console.log('AdminPanel - Leads após filtro de data/busca:', leadsFiltradosPorDataEBusca);
 
-  // Mantenha o filtro de status, mas o foco é no filtro de data/busca para este teste
+  // Filtra por status de resumo clicado (Total, Qualify, Financeira, Técnica, etc.)
   const leadsFiltradosParaTabela = leadsFiltradosPorDataEBusca.filter(lead => {
     if (!statusFiltroResumo || statusFiltroResumo === "total") {
-      return true;
+      return true; // Se o filtro for 'total' ou nulo, mostra todos os leads após data/busca
     }
     if (statusFiltroResumo === "QUALIFY") {
       return lead.status1 && lead.status1.startsWith("QUALIFY");
     }
-    return lead.status1 === statusFiltroResumo;
+    return lead.status1 === statusFiltroResumo; // Filtra pelo status exato
   });
 
   // LOGS PARA DEPURAR
@@ -382,12 +392,12 @@ export default function AdminPanel({ leads, onAddLead, onUpdateLead, onDeleteLea
   return (
     <div className="flex min-h-screen bg-gray-100 text-gray-900">
       <aside className="bg-gray-200 w-60 flex flex-col py-6 px-4 min-h-screen text-gray-900 border-r border-gray-300"><div className="font-bold text-2xl mb-4 flex items-center gap-2"><FileBarChart2 className="w-7 h-7 text-green-500" /> Infinite Link</div><nav className="flex-1 flex flex-col gap-3"><Link to="/" className="flex items-center gap-2 p-2 rounded-lg bg-green-100 text-green-700 font-semibold"><ListTodo className="w-5 h-5" /> Pré-Vendas</Link><Link to="/esteira" className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-300 transition"><Users className="w-5 h-5" /> Esteira Agendados</Link></nav><div className="mt-auto text-xs text-gray-600 pt-6 border-t border-gray-300">v3.7</div></aside>
-      
-      <main className="flex-1 py-10 px-6 lg:px-16 bg-gray-100 min-h-screen">
-        <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
-          <div className="flex items-center gap-3 relative">
-            <div className="relative w-fit">
-              <button className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 shadow-sm bg-white hover:ring-2 hover:ring-green-400 transition" onClick={() => setShowPicker(!showPicker)} type="button"><CalendarDays className="w-5 h-5 text-green-600" /><span className="text-sm">{periodoLabel}</span></button>{showPicker && (<div className="absolute z-50 mt-2 shadow-2xl bg-white rounded p-3 border border-gray-300"><DateRange onChange={item => setRange([item.selection])} ranges={range} locale={ptBR} moveRangeOnFirstSelection={false} rangeColors={["#16a34a"]} showDateDisplay={false} /><div className="flex justify-end gap-2 pt-2"><button className="px-3 py-1 rounded bg-gray-200 text-gray-800 text-sm" onClick={handleCancel} type="button">Cancelar</button><button className="px-3 py-1 rounded bg-green-600 text-white text-sm" onClick={handleOk} type="button">Aplicar</button></div></div>)}
+          
+          <main className="flex-1 py-10 px-6 lg:px-16 bg-gray-100 min-h-screen">
+            <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
+              <div className="flex items-center gap-3 relative">
+                <div className="relative w-fit">
+                  <button className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 shadow-sm bg-white hover:ring-2 hover:ring-green-400 transition" onClick={() => setShowPicker(!showPicker)} type="button"><CalendarDays className="w-5 h-5 text-green-600" /><span className="text-sm">{periodoLabel}</span></button>{showPicker && (<div className="absolute z-50 mt-2 shadow-2xl bg-white rounded p-3 border border-gray-300"><DateRange onChange={item => setRange([item.selection])} ranges={range} locale={ptBR} moveRangeOnFirstSelection={false} rangeColors={["#16a34a"]} showDateDisplay={false} /><div className="flex justify-end gap-2 pt-2"><button className="px-3 py-1 rounded bg-gray-200 text-gray-800 text-sm" onClick={handleCancel} type="button">Cancelar</button><button className="px-3 py-1 rounded bg-green-600 text-white text-sm" onClick={handleOk} type="button">Aplicar</button></div></div>)}
                 </div>
                 <UserSearch className="w-6 h-6 text-gray-400 ml-5" />
                 <input type="text" placeholder="Buscar cliente por CPF ou nome" className="w-full md:w-96 px-4 py-2 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-green-400 focus:outline-none bg-white text-gray-900" value={busca} onChange={e => setBusca(e.target.value)} />
@@ -478,7 +488,7 @@ export default function AdminPanel({ leads, onAddLead, onUpdateLead, onDeleteLea
               <button onClick={() => setShowNewLeadModal(false)} className="text-gray-500 hover:text-gray-800"><X size={28} /></button>
             </div>
             <form onSubmit={handleSaveNewLead}>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
                 {/* Dados Pessoais */}
                 <div className="space-y-4 p-4 border rounded-lg shadow-sm bg-white">
                   <h4 className="font-semibold text-lg text-green-600">Dados Pessoais</h4>
