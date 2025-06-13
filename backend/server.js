@@ -1,7 +1,6 @@
 // backend/server.js
 const express = require('express');
 const cors = require('cors');
-const { Client } = require('pg'); // Apenas pg, sem better-sqlite3
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -22,21 +21,42 @@ app.use(express.json());
 // --- Inicialização do Banco de Dados (Assíncrona para PostgreSQL) ---
 async function initializeDatabase() {
   if (!process.env.DATABASE_URL) {
-      // Se não houver DATABASE_URL (ambiente local de dev)
-      console.log('Backend: Usando SQLite local para desenvolvimento.');
+      // === Configuração para SQLite local ===
       const Database = require('better-sqlite3'); // Carrega better-sqlite3 apenas aqui
+      console.log('Backend: Usando SQLite local para desenvolvimento.');
       const dbLocal = new Database('crm_leads.db', { verbose: console.log });
 
       dbLocal.run = (sql, params) => {
-          return dbLocal.prepare(sql).run(params);
+          // Adaptação para PostgreSQL ($n) para SQLite (?)
+          const sqliteSql = sql.replace(/\$(\d+)/g, '?');
+          const stmt = dbLocal.prepare(sqliteSql);
+          const boundParams = {};
+          if (params) {
+            Object.keys(params).forEach(key => {
+                boundParams[key] = params[key];
+            });
+          }
+          const result = stmt.run(Object.values(boundParams));
+          return { changes: result.changes, lastInsertRowid: result.lastInsertRowid };
       };
-      dbLocal.all = (sql, params) => {
-          return dbLocal.prepare(sql).all(params);
+
+      dbLocal.all = (sql, params = {}) => {
+          const sqliteSql = sql.replace(/\$(\d+)/g, '?');
+          const stmt = dbLocal.prepare(sqliteSql);
+          const boundParams = {};
+          if (params) {
+            Object.keys(params).forEach(key => {
+                boundParams[key] = params[key];
+            });
+          }
+          return stmt.all(Object.values(boundParams));
       };
 
       dbLocal.exec(`
           CREATE TABLE IF NOT EXISTS leads (
-              id TEXT PRIMARY KEY, dataCadastro TEXT DEFAULT TO_CHAR(NOW(), 'YYYY-MM-DD'), nome TEXT, cpf TEXT, email TEXT, dataNascimento TEXT,
+              id TEXT PRIMARY KEY,
+              dataCadastro TEXT DEFAULT CURRENT_DATE, -- <--- CORREÇÃO AQUI PARA SQLITE
+              nome TEXT, cpf TEXT, email TEXT, dataNascimento TEXT,
               telefone TEXT, telefone2 TEXT, uf TEXT, cep TEXT, rua TEXT, numero TEXT, complemento TEXT,
               bairro TEXT, cidade TEXT, plano TEXT, vendedor TEXT, dataAgendamento TEXT, turnoAgendamento TEXT,
               status1 TEXT, statusEsteira TEXT, tecnico TEXT, obs TEXT, contrato TEXT, infoExtra TEXT,
@@ -48,7 +68,8 @@ async function initializeDatabase() {
       return; // Sai da função, pois o DB local foi configurado
   }
 
-  // --- Configuração para PostgreSQL no Heroku (SE process.env.DATABASE_URL existir) ---
+  // --- Configuração para PostgreSQL no Heroku ---
+  const { Client } = require('pg'); // Carrega 'pg' AQUI, APENAS se DATABASE_URL existe
   pgClient = new Client({
     connectionString: process.env.DATABASE_URL,
     ssl: {
@@ -85,7 +106,7 @@ async function initializeDatabase() {
     await pgClient.query(`
       CREATE TABLE IF NOT EXISTS leads (
         id TEXT PRIMARY KEY,
-        dataCadastro TEXT,
+        dataCadastro TEXT DEFAULT TO_CHAR(NOW(), 'YYYY-MM-DD'), -- <--- MANTÉM ESTA SINTAXE PARA POSTGRESQL
         nome TEXT,
         cpf TEXT,
         email TEXT,
@@ -140,9 +161,9 @@ app.get('/api/leads', async (req, res) => {
 
 // Rota para adicionar um novo lead
 app.post('/api/leads', async (req, res) => {
-  // Adicionado: Garante que dataCadastro tenha um valor válido (data atual) se não foi fornecido
-  newLead.dataCadastro = newLead.dataCadastro ? newLead.dataCadastro.slice(0,10) : new Date().toISOString().slice(0, 10);
   const newLead = req.body;
+  // Adicionado: Garante que dataCadastro tenha um valor válido (data atual) se não foi fornecido
+  newLead.dataCadastro = newLead.dataCadastro || new Date().toISOString().slice(0, 10); 
 
   const sql = `
     INSERT INTO leads (
@@ -153,7 +174,7 @@ app.post('/api/leads', async (req, res) => {
       @id, @dataCadastro, @nome, @cpf, @email, @dataNascimento, @telefone, @telefone2, @uf, @cep, @rua, @numero, @complemento,
       @bairro, @cidade, @plano, @vendedor, @dataAgendamento, @turnoAgendamento, @status1, @statusEsteira, @tecnico, @obs,
       @contrato, @infoExtra, @pontoReferencia, @linkLocalizacao, @obsEndereco, @origemVenda, @diaVencimento
-    ) RETURNING id`;
+    ) RETURNING id`; // Adicionado RETURNING id para PostgreSQL
 
   try {
     const info = await db.run(sql, newLead);
@@ -196,9 +217,10 @@ app.put('/api/leads/:id', async (req, res) => {
 // Rota para deletar um lead
 app.delete('/api/leads/:id', async (req, res) => {
   const { id } = req.params;
-  const sql = `DELETE FROM leads WHERE id = $1`; // PostgreSQL usa '$1'
+  // Usa o método 'run' abstrato que lida com os parâmetros para SQLite/PostgreSQL
+  const sql = `DELETE FROM leads WHERE id = $1`;
   try {
-    const info = await db.run(sql, { 1: id }); // Usando 'run' abstrato
+    const info = await db.run(sql, { 1: id }); // Passa o ID como um objeto para a adaptação de run
     if (info.changes > 0) {
       res.json({ message: "Lead excluído com sucesso!" });
     } else {
