@@ -1,388 +1,393 @@
-    // src/AdminPanel.js
-    import React, { useState, useRef, useEffect } from "react";
-    import { createPortal } from "react-dom";
-    import { Link } from 'react-router-dom';
-    import { UserSearch, Users, FileBarChart2, ListTodo, CalendarDays, Copy, X, CheckCircle2, AlertTriangle, Wrench, XCircle, Clock, PlusCircle, ShoppingBag, MapPin, MessageSquareText } from "lucide-react";
-    import { DateRange } from "react-date-range";
-    import ptBR from "date-fns/locale/pt-BR";
-    import "react-date-range/dist/styles.css";
-    import "react-date-range/dist/theme/default.css";
+// src/AdminPanel.js
+import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { Link } from 'react-router-dom';
+import { UserSearch, Users, FileBarChart2, ListTodo, CalendarDays, Copy, X, CheckCircle2, AlertTriangle, Wrench, XCircle, Clock, PlusCircle, ShoppingBag, MapPin, MessageSquareText } from "lucide-react";
+import { DateRange } from "react-date-range";
+import ptBR from "date-fns/locale/pt-BR";
+import "react-date-range/dist/styles.css";
+import "react-date-range/dist/theme/default.css";
 
-    // Hook customizado para detectar cliques fora de um elemento
-    function useClickOutside(ref, handler) {
-        useEffect(() => {
-            const listener = (event) => {
-                if (!ref.current || ref.current.contains(event.target)) { return; }
-                handler(event);
-            };
-            document.addEventListener("click", listener);
-            document.addEventListener("touchstart", listener);
-            return () => {
-                document.removeEventListener("click", listener);
-                document.removeEventListener("touchstart", listener);
-            };
-        }, [ref, handler]);
-    }
-
-    const statusList = [ "CPF REPROVADO", "CANCELADO", "QUALIFY - PEDIR DOCUMENTOS", "QUALIFY - DOCUMENTOS ENVIADOS", "AGENDADO", "FINANCEIRA", "TÉCNICA" ];
-    const statusPill = {
-        "CPF REPROVADO": "bg-yellow-100 text-yellow-800",
-        "CANCELADO": "bg-red-100 text-red-800",
-        "QUALIFY - PEDIR DOCUMENTOS": "bg-blue-100 text-blue-800",
-        "QUALIFY - DOCUMENTOS ENVIADOS": "bg-blue-100 text-blue-800",
-        "AGENDADO": "bg-blue-100 text-blue-800",
-        "FINANCEIRA": "bg-gray-200 text-gray-700",
-        "TÉCNICA": "bg-gray-200 text-gray-700"
-    };
-    const infoExtraOptions = [ { value: "", color: "bg-gray-200 text-gray-500 border-gray-300", text: "–", label: "Nenhum" }, { value: "FORMS_ENVIADO", color: "bg-blue-500 text-white border-blue-600", text: "F", label: "Forms Enviado" }, { value: "PENDENCIA", color: "bg-yellow-400 text-yellow-900 border-yellow-600", text: "P", label: "Pendência" }, { value: "NUMERO_ALTERADO", color: "bg-yellow-500 text-yellow-900 border-yellow-700", text: "N", label: "Número alterado" }, { value: "TRATANDO", color: "bg-purple-500 text-white border-purple-700", text: "T", label: "Tratando" }, ];
-    const statusIconMap = {
-        "AGENDADO": { icon: CheckCircle2, color: "text-blue-500" },
-        "QUALIFY - PEDIR DOCUMENTOS": { icon: Wrench, color: "text-blue-500" },
-        "QUALIFY - DOCUMENTOS ENVIADOS": { icon: Wrench, color: "text-blue-500" },
-        "CPF REPROVADO": { icon: AlertTriangle, color: "text-yellow-500" },
-        "CANCELADO": { icon: XCircle, color: "text-red-500" },
-        "FINANCEIRA": { icon: ListTodo, color: "text-gray-500" },
-        "TÉCNICA": { icon: ListTodo, color: "text-gray-500" },
-    }
-
-    function InfoExtraBadgeSelect({ value, onChange }) { const [open, setOpen] = useState(false); const [style, setStyle] = useState({}); const buttonRef = useRef(null); const menuRef = useRef(null); useEffect(() => { if (open && buttonRef.current) { const rect = buttonRef.current.getBoundingClientRect(); setStyle({ top: `${rect.bottom + window.scrollY}px`, left: `${rect.left + rect.width / 2 + window.scrollX}px` }); } }, [open]); useClickOutside(menuRef, () => setOpen(false)); const current = infoExtraOptions.find(o => o.value === value) || infoExtraOptions[0]; const Menu = ( <div ref={menuRef} className="fixed z-50 bg-white rounded shadow-lg border min-w-[140px] py-1 animate-fadein" style={{ ...style, transform: 'translateX(-50%)', marginTop: '8px' }}> {infoExtraOptions.map(opt => (<button key={opt.value} className={`flex items-center w-full px-3 py-2 text-xs gap-2 hover:bg-gray-100 ${opt.value === value ? "font-bold" : ""}`} onClick={e => { e.stopPropagation(); onChange(opt.value); setOpen(false); }} type="button"><span className={`rounded-full w-5 h-5 flex items-center justify-center border ${opt.color} text-xs font-bold`}>{opt.text}</span>{opt.label}</button>))} </div> ); return (<div ref={buttonRef}><button type="button" className={`rounded-full w-7 h-7 flex items-center justify-center border text-xs font-bold shadow ${current.color} hover:ring-2 hover:ring-green-400 transition`} title="Alterar info extra" onClick={e => { e.stopPropagation(); setOpen(v => !v); }}>{current.text}</button>{open && createPortal(Menu, document.body)}</div>); }
-
-    const resumoMap = [
-      { key: "total", label: "TOTAL", color: "bg-green-50 text-green-800 border-green-400", icon: ListTodo },
-      { key: "CPF REPROVADO", label: "CPF REPROVADO", color: "bg-yellow-50 text-yellow-900 border-yellow-400", icon: AlertTriangle },
-      { key: "CANCELADO", label: "CANCELADO", color: "bg-red-100 text-red-700 border-red-400", icon: XCircle },
-      { key: "QUALIFY", label: "QUALIFY", color: "bg-blue-100 text-blue-700 border-blue-400", icon: Wrench },
-      { key: "FINANCEIRA", label: "FINANCEIRA", color: "bg-gray-100 text-gray-700 border-gray-400", icon: ListTodo },
-      { key: "TÉCNICA", label: "TÉCNICA", color: "bg-gray-100 text-gray-700 border-gray-400", icon: ListTodo }
-    ];
-
-    function resumoPorStatus(leads) {
-        const counts = {
-            "total": leads.length,
-            "CPF REPROVADO": 0,
-            "CANCELADO": 0,
-            "QUALIFY": 0,
-            "FINANCEIRA": 0,
-            "TÉCNICA": 0
+// Hook customizado para detectar cliques fora de um elemento
+function useClickOutside(ref, handler) {
+    useEffect(() => {
+        const listener = (event) => {
+            if (!ref.current || ref.current.contains(event.target)) { return; }
+            handler(event);
         };
-        for (const lead of leads) {
-            if (lead.status1) {
-                if (lead.status1.startsWith("QUALIFY")) {
-                    counts.QUALIFY++;
-                } else if (counts.hasOwnProperty(lead.status1)) {
-                    counts[lead.status1]++;
-                }
-            }
-        }
-        return counts;
-    }
-    function parseISODate(str) {
-  if (!str || typeof str !== 'string' || !str.match(/^\d{4}-\d{2}-\d{2}$/)) {
-    return null; // Retorna null ou uma data de hoje, para não quebrar.
-  }
-  const [year, month, day] = str.split('-').map(Number);
-  return new Date(year, month - 1, day);
+        document.addEventListener("click", listener);
+        document.addEventListener("touchstart", listener);
+        return () => {
+            document.removeEventListener("click", listener);
+            document.removeEventListener("touchstart", listener);
+        };
+    }, [ref, handler]);
 }
 
-    // Componente do Menu de Status com Portal (MODIFICADO para aceitar statusOptions)
-    function StatusMenu({ lead, onStatusChange, onClose, position, statusOptions }) {
-        const menuRef = useRef(null);
-        useClickOutside(menuRef, onClose);
-        const handleSelect = (e, status) => {
-            e.stopPropagation();
-            onStatusChange(lead, status);
-            onClose(); // Fechar o menu após a seleção
-        };
-        const optionsToRender = statusOptions || statusList;
+const statusList = [ "CPF REPROVADO", "CANCELADO", "QUALIFY - PEDIR DOCUMENTOS", "QUALIFY - DOCUMENTOS ENVIADOS", "AGENDADO", "FINANCEIRA", "TÉCNICA" ];
+const statusPill = {
+    "CPF REPROVADO": "bg-yellow-100 text-yellow-800",
+    "CANCELADO": "bg-red-100 text-red-800",
+    "QUALIFY - PEDIR DOCUMENTOS": "bg-blue-100 text-blue-800",
+    "QUALIFY - DOCUMENTOS ENVIADOS": "bg-blue-100 text-blue-800",
+    "AGENDADO": "bg-blue-100 text-blue-800",
+    "FINANCEIRA": "bg-gray-200 text-gray-700",
+    "TÉCNICA": "bg-gray-200 text-gray-700"
+};
+const infoExtraOptions = [ { value: "", color: "bg-gray-200 text-gray-500 border-gray-300", text: "–", label: "Nenhum" }, { value: "FORMS_ENVIADO", color: "bg-blue-500 text-white border-blue-600", text: "F", label: "Forms Enviado" }, { value: "PENDENCIA", color: "bg-yellow-400 text-yellow-900 border-yellow-600", text: "P", label: "Pendência" }, { value: "NUMERO_ALTERADO", color: "bg-yellow-500 text-yellow-900 border-yellow-700", text: "N", label: "Número alterado" }, { value: "TRATANDO", color: "bg-purple-500 text-white border-purple-700", text: "T", label: "Tratando" }, ];
+const statusIconMap = {
+    "AGENDADO": { icon: CheckCircle2, color: "text-blue-500" },
+    "QUALIFY - PEDIR DOCUMENTOS": { icon: Wrench, color: "text-blue-500" },
+    "QUALIFY - DOCUMENTOS ENVIADOS": { icon: Wrench, color: "text-blue-500" },
+    "CPF REPROVADO": { icon: AlertTriangle, color: "text-yellow-500" },
+    "CANCELADO": { icon: XCircle, color: "text-red-500" },
+    "FINANCEIRA": { icon: ListTodo, color: "text-gray-500" },
+    "TÉCNICA": { icon: ListTodo, color: "text-gray-500" },
+}
 
-        return createPortal(
-            <div ref={menuRef} style={{ top: position.top, left: position.left }} className="absolute w-64 bg-white rounded-lg shadow-xl border z-[60]">
-                <div className="p-2 border-b text-sm font-semibold text-gray-600">Alterar Status</div>
-                <div className="py-1">
-                    {optionsToRender.map(status => {
-                        const Icon = statusIconMap[status]?.icon || Wrench;
-                        const color = statusIconMap[status]?.color || "text-gray-500";
-                        return (<button key={status} onClick={(e) => handleSelect(e, status)} className={`w-full text-left px-3 py-2.5 text-sm flex items-center gap-3 hover:bg-gray-100 ${lead.status1 === status ? 'bg-green-50' : ''}`}><Icon className={color} size={18}/><span>{status}</span></button>)
-                    })}
-                </div>
-            </div>,
-            document.body
-        );
-    }
+function InfoExtraBadgeSelect({ value, onChange }) { const [open, setOpen] = useState(false); const [style, setStyle] = useState({}); const buttonRef = useRef(null); const menuRef = useRef(null); useEffect(() => { if (open && buttonRef.current) { const rect = buttonRef.current.getBoundingClientRect(); setStyle({ top: `${rect.bottom + window.scrollY}px`, left: `${rect.left + rect.width / 2 + window.scrollX}px` }); } }, [open]); useClickOutside(menuRef, () => setOpen(false)); const current = infoExtraOptions.find(o => o.value === value) || infoExtraOptions[0]; const Menu = ( <div ref={menuRef} className="fixed z-50 bg-white rounded shadow-lg border min-w-[140px] py-1 animate-fadein" style={{ ...style, transform: 'translateX(-50%)', marginTop: '8px' }}> {infoExtraOptions.map(opt => (<button key={opt.value} className={`flex items-center w-full px-3 py-2 text-xs gap-2 hover:bg-gray-100 ${opt.value === value ? "font-bold" : ""}`} onClick={e => { e.stopPropagation(); onChange(opt.value); setOpen(false); }} type="button"><span className={`rounded-full w-5 h-5 flex items-center justify-center border ${opt.color} text-xs font-bold`}>{opt.text}</span>{opt.label}</button>))} </div> ); return (<div ref={buttonRef}><button type="button" className={`rounded-full w-7 h-7 flex items-center justify-center border text-xs font-bold shadow ${current.color} hover:ring-2 hover:ring-green-400 transition`} title="Alterar info extra" onClick={e => { e.stopPropagation(); setOpen(v => !v); }}>{current.text}</button>{open && createPortal(Menu, document.body)}</div>); }
 
-    const initialNewLeadState = {
-      nome: "", cpf: "", email: "", dataNascimento: "",
-      telefone: "", telefone2: "", uf: "", cep: "",
-      rua: "", numero: "", complemento: "", bairro: "",
-      cidade: "", pontoReferencia: "", linkLocalizacao: "", obsEndereco: "",
-      plano: "", vendedor: "",
-      origemVenda: "", diaVencimento: "",
-      contrato: "", status1: "", // Alterado para string vazia para que "Selecione" apareça primeiro
-      infoExtra: "", dataAgendamento: null, turnoAgendamento: null,
-      statusEsteira: null, tecnico: null, obs: ""
+const resumoMap = [
+  { key: "total", label: "TOTAL", color: "bg-green-50 text-green-800 border-green-400", icon: ListTodo },
+  { key: "CPF REPROVADO", label: "CPF REPROVADO", color: "bg-yellow-50 text-yellow-900 border-yellow-400", icon: AlertTriangle },
+  { key: "CANCELADO", label: "CANCELADO", color: "bg-red-100 text-red-700 border-red-400", icon: XCircle },
+  { key: "QUALIFY", label: "QUALIFY", color: "bg-blue-100 text-blue-700 border-blue-400", icon: Wrench },
+  { key: "FINANCEIRA", label: "FINANCEIRA", color: "bg-gray-100 text-gray-700 border-gray-400", icon: ListTodo },
+  { key: "TÉCNICA", label: "TÉCNICA", color: "bg-gray-100 text-gray-700 border-gray-400", icon: ListTodo }
+];
+
+function resumoPorStatus(leads) {
+    const counts = {
+        "total": leads.length,
+        "CPF REPROVADO": 0,
+        "CANCELADO": 0,
+        "QUALIFY": 0,
+        "FINANCEIRA": 0,
+        "TÉCNICA": 0
     };
-
-    // Adicionado 'onAddLead', 'onUpdateLead', 'onDeleteLead' nas props
-    export default function AdminPanel({ leads, onAddLead, onUpdateLead, onDeleteLead }) {
-      const [busca, setBusca] = useState("");
-      const [leadExpandido, setLeadExpandido] = useState(null);
-      const [editando, setEditando] = useState(null);
-      const [leadEdit, setLeadEdit] = useState({});
-      const [showObsModal, setShowObsModal] = useState(false);
-      const [obsTemp, setObsTemp] = useState("");
-      const [obsLeadId, setObsLeadId] = useState(null);
-      const [showEsteiraModal, setShowEsteiraModal] = useState(false);
-      const [showObsObrigModal, setShowObsObrigModal] = useState(false);
-      const [obsObrig, setObsObrig] = useState("");
-      const [pendingStatusChange, setPendingStatusChange] = useState(null);
-      const [agendarData, setAgendarData] = useState("");
-      const [agendarTurno, setAgendarTurno] = useState("");
-      const [contratoInput, setContratoInput] = useState("");
-      const [statusFiltroResumo, setStatusFiltroResumo] = useState('total'); // MUDADO PARA 'total' POR PADRÃO
-      const [showNewLeadModal, setShowNewLeadModal] = useState(false);
-      const [newLeadData, setNewLeadData] = useState(initialNewLeadState);
-      
-      const [statusMenuState, setStatusMenuState] = useState({ open: false, leadId: null, position: {} });
-      const [newLeadStatusMenuState, setNewLeadStatusMenuState] = useState({ open: false, position: {} });
-      const newLeadStatusButtonRef = useRef(null);
-      
-      const today = new Date();
-      const [range, setRange] = useState([{ startDate: new Date(today.getFullYear(), today.getMonth(), 1), endDate: today, key: "selection" }]);
-      const [showPicker, setShowPicker] = useState(false);
-      const [appliedRange, setAppliedRange] = useState([{ startDate: new Date(today.getFullYear(), today.getMonth(), 1), endDate: today, key: "selection" }]);
-      const periodoLabel = appliedRange[0].startDate.toLocaleDateString("pt-BR") === appliedRange[0].endDate.toLocaleDateString("pt-BR") ? appliedRange[0].startDate.toLocaleDateString("pt-BR") : `${appliedRange[0].startDate.toLocaleDateString("pt-BR")} até ${appliedRange[0].endDate.toLocaleDateString("pt-BR")}`;
-      
-      function handleOk() { setAppliedRange(range); setShowPicker(false); }
-      function handleCancel() { setRange(appliedRange); setShowPicker(false); }
-      
-      // LOGS PARA DEPURAR - AGORA ELES DEVEM APARECER!
-      console.log('AdminPanel - Leads recebidos (prop):', leads);
-      console.log('AdminPanel - appliedRange (Filtro de Data):', appliedRange); // Log da data do filtro
-      
-      const leadsFiltradosPorDataEBusca = leads.filter(lead => {
-        const d = parseISODate(lead.dataCadastro);
-        const start = new Date(appliedRange[0].startDate);
-        const end = new Date(appliedRange[0].endDate);
-        start.setHours(0, 0, 0, 0); // Garante o início do dia
-        end.setHours(23, 59, 59, 999); // Garante o fim do dia
-
-        const dataOk = d >= start && d <= end;
-        const buscaOk = lead.nome.toLowerCase().includes(busca.toLowerCase()) || (lead.cpf || "").replace(/\D/g, "").includes(busca.replace(/\D/g, ""));
-
-        // NOVOS CONSOLE.LOGS DETALHADOS PARA DEPURAR O FILTRO!
-        console.log(`--- Debug Filter para o Lead: ${lead.nome} ---`);
-        console.log(`  lead.dataCadastro (string): ${lead.dataCadastro}`);
-        console.log(`  Data do Lead (parseada - d): ${d.toISOString()}`);
-        console.log(`  Data Início do Filtro (start): ${start.toISOString()}`);
-        console.log(`  Data Fim do Filtro (end): ${end.toISOString()}`);
-        console.log(`  Resultado dataOk (d >= start && d <= end): ${dataOk}`);
-        console.log(`  Valor da busca: "${busca}"`);
-        console.log(`  Resultado buscaOk: ${buscaOk}`);
-        console.log(`  Resultado FINAL do filtro para este lead: ${dataOk && buscaOk}`);
-        console.log(`-------------------------------------------`);
-
-        // Agora mostra TODOS os leads para depuração, removendo o filtro de 'AGENDADO'
-        return dataOk && buscaOk; // <--- AGORA MOSTRA TODOS OS LEADS (EXCETO SE FILTRADO POR OUTRO STATUS)
-      });
-
-      const resumo = resumoPorStatus(leadsFiltradosPorDataEBusca);
-
-      // LOGS PARA DEPURAR
-      console.log('AdminPanel - Leads após filtro de data/busca:', leadsFiltradosPorDataEBusca);
-
-      // Mantenha o filtro de status, mas o foco é no filtro de data/busca para este teste
-      const leadsFiltradosParaTabela = leadsFiltradosPorDataEBusca.filter(lead => {
-        if (!statusFiltroResumo || statusFiltroResumo === "total") {
-          return true;
-        }
-        if (statusFiltroResumo === "QUALIFY") {
-          return lead.status1 && lead.status1.startsWith("QUALIFY");
-        }
-        return lead.status1 === statusFiltroResumo;
-      });
-
-      // LOGS PARA DEPURAR
-      console.log('AdminPanel - Leads finais para tabela (com filtro de status):', leadsFiltradosParaTabela);
-
-
-      // Função para alterar o status de um lead existente (interage com o backend)
-      const handleStatusChange = async (lead, nextStatus) => {
-        try {
-          await onUpdateLead({ ...lead, status1: nextStatus }); // Chama a prop onUpdateLead
-          setStatusMenuState({ open: false, leadId: null, position: {} });
-          if (nextStatus === "CPF REPROVADO" || nextStatus === "CANCELADO") { setPendingStatusChange({ lead, nextStatus }); setObsObrig(lead.obs || ""); setShowObsObrigModal(true); return; }
-          if (nextStatus === "AGENDADO") { setPendingStatusChange({ lead, nextStatus }); setContratoInput(""); const today = new Date().toISOString().split('T')[0]; setAgendarData(today); setAgendarTurno(""); setShowEsteiraModal(true); return; }
-        } catch (error) {
-          console.error("Erro ao alterar status:", error);
-          alert("Falha ao alterar status. Verifique o console.");
-        }
-      };
-
-      // Funções de salvamento que agora chamam as props do App.js
-      const handleSaveObsObrig = async () => {
-        if (!obsObrig.trim()) { alert("A observação é obrigatória para este status."); return; }
-        try {
-          const { lead, nextStatus } = pendingStatusChange;
-          await onUpdateLead({ ...lead, obs: obsObrig, status1: nextStatus }); // Chama a prop onUpdateLead
-          setShowObsObrigModal(false); setPendingStatusChange(null); setObsObrig("");
-        } catch (error) {
-          console.error("Erro ao salvar observação obrigatória:", error);
-          alert("Falha ao salvar observação. Verifique o console.");
-        }
-      };
-
-      const handleSaveEsteira = async () => {
-        if (!contratoInput.trim() || !agendarData.trim() || !agendarTurno.trim()) { alert("Por favor, preencha todos os campos para o agendamento."); return; }
-        try {
-          const { lead, nextStatus } = pendingStatusChange;
-          const statusInicialEsteira = "AGENDADO";
-          await onUpdateLead({
-            ...lead,
-            status1: nextStatus,
-            statusEsteira: statusInicialEsteira,
-            contrato: contratoInput,
-            dataAgendamento: agendarData.split('-').reverse().join('/'),
-            turnoAgendamento: agendarTurno,
-          }); // Chama a prop onUpdateLead
-          setShowEsteiraModal(false); setPendingStatusChange(null);
-        } catch (error) {
-          console.error("Erro ao salvar agendamento na esteira:", error);
-          alert("Falha ao agendar. Verifique o console.");
-        }
-      };
-      
-      function handleCancelStatusChange() { setShowObsObrigModal(false); setShowEsteiraModal(false); setPendingStatusChange(null); }
-      
-      // Ações de edição de infoExtra que agora chamam a prop onUpdateLead
-      const handleInfoExtraChange = async (lead, value) => {
-        try {
-          await onUpdateLead({ ...lead, infoExtra: value });
-        } catch (error) {
-          console.error("Erro ao alterar info extra:", error);
-          alert("Falha ao alterar info extra. Verifique o console.");
-        }
-      };
-
-      const handleInfoExtraChangeEdit = (value) => { setLeadEdit(f => ({ ...f, infoExtra: value })); };
-      
-      const startEdit = (lead) => {
-          setEditando(lead.id);
-          const leadToEdit = { ...lead };
-          if (leadToEdit.dataNascimento) {
-              const parts = leadToEdit.dataNascimento.split('/');
-              if (parts.length === 3) {
-                  leadToEdit.dataNascimento = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-              }
-          }
-          setLeadEdit(leadToEdit);
-      };
-
-      const saveEdit = async (id) => {
-        try {
-          const leadData = { ...leadEdit };
-          if (leadData.dataNascimento) {
-              const parts = leadData.dataNascimento.split('-');
-              if (parts.length === 3) {
-                  leadData.dataNascimento = `${parts[2]}/${parts[1]}/${parts[0]}`;
-              }
-          }
-          await onUpdateLead({ ...leadData, id }); // Chama a prop onUpdateLead
-          setEditando(null);
-        } catch (error) {
-          console.error("Erro ao salvar edição:", error);
-          alert("Falha ao salvar edição. Verifique o console.");
-        }
-      };
-
-      function cancelEdit() { setEditando(null); }
-      
-      const handleOpenObs = (lead) => { setObsLeadId(lead.id); setObsTemp(lead.obs || ""); setShowObsModal(true); };
-      const handleCloseObs = () => { setShowObsModal(false); setObsLeadId(null); setObsTemp(""); };
-      
-      const salvarObs = async () => {
-        try {
-          // Busca o lead atualizado da lista para garantir que obsLeadId ainda é válido
-          const leadToUpdate = leads.find(l => l.id === obsLeadId);
-          if (leadToUpdate) {
-            await onUpdateLead({ ...leadToUpdate, obs: obsTemp }); // Chama a prop onUpdateLead
-          }
-          handleCloseObs();
-        } catch (error) {
-          console.error("Erro ao salvar observação:", error);
-          alert("Falha ao salvar observação. Verifique o console.");
-        }
-      };
-      
-      const handleNewLeadChange = (e) => {
-        const { name, value } = e.target;
-        let newValue = value;
-        if (name === "dataNascimento" && value) {
-            if (value.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                const [year, month, day] = value.split('-');
-                newValue = `${day}/${month}/${year}`;
+    for (const lead of leads) {
+        if (lead.status1) {
+            if (lead.status1.startsWith("QUALIFY")) {
+                counts.QUALIFY++;
+            } else if (counts.hasOwnProperty(lead.status1)) {
+                counts[lead.status1]++;
             }
         }
-        setNewLeadData(prev => ({ ...prev, [name]: newValue }));
-      };
+    }
+    return counts;
+}
 
-      const handleSelectNewLeadStatus = (leadMock, statusSelected) => {
-        setNewLeadData(prev => ({ ...prev, status1: statusSelected }));
-        setNewLeadStatusMenuState({ open: false, position: {} }); // Garante que o menu feche
-      };
+// CORRIGIDO: Agora retorna null se a data for inválida, para não usar 1970
+function parseISODate(str) {
+  if (!str || typeof str !== 'string' || !str.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    return null; // Retorna null para datas inválidas ou undefined
+  }
+  const [year, month, day] = str.split('-').map(Number);
+  // Cuidado com fusos horários, cria data UTC para evitar problemas
+  return new Date(Date.UTC(year, month - 1, day));
+}
 
-      const handleSaveNewLead = async (e) => {
-        e.preventDefault();
-        // Validação agora inclui status1
-        if (!newLeadData.nome || !newLeadData.cpf || !newLeadData.telefone || !newLeadData.plano || !newLeadData.status1) {
-            alert("Nome, CPF, Telefone, Plano e Status Inicial são obrigatórios para um novo lead.");
-            return;
+// Componente do Menu de Status com Portal (MODIFICADO para aceitar statusOptions)
+function StatusMenu({ lead, onStatusChange, onClose, position, statusOptions }) {
+    const menuRef = useRef(null);
+    useClickOutside(menuRef, onClose);
+    const handleSelect = (e, status) => {
+        e.stopPropagation();
+        onStatusChange(lead, status);
+        onClose(); // Fechar o menu após a seleção
+    };
+    const optionsToRender = statusOptions || statusList;
+
+    return createPortal(
+        <div ref={menuRef} style={{ top: position.top, left: position.left }} className="absolute w-64 bg-white rounded-lg shadow-xl border z-[60]">
+            <div className="p-2 border-b text-sm font-semibold text-gray-600">Alterar Status</div>
+            <div className="py-1">
+                {optionsToRender.map(status => {
+                    const Icon = statusIconMap[status]?.icon || Wrench;
+                    const color = statusIconMap[status]?.color || "text-gray-500";
+                    return (<button key={status} onClick={(e) => handleSelect(e, status)} className={`w-full text-left px-3 py-2.5 text-sm flex items-center gap-3 hover:bg-gray-100 ${lead.status1 === status ? 'bg-green-50' : ''}`}><Icon className={color} size={18}/><span>{status}</span></button>)
+                })}
+            </div>
+        </div>,
+        document.body
+    );
+}
+
+const initialNewLeadState = {
+  nome: "", cpf: "", email: "", dataNascimento: "",
+  telefone: "", telefone2: "", uf: "", cep: "",
+  rua: "", numero: "", complemento: "", bairro: "",
+  cidade: "", pontoReferencia: "", linkLocalizacao: "", obsEndereco: "",
+  plano: "", vendedor: "",
+  origemVenda: "", diaVencimento: "",
+  contrato: "", status1: "", // Alterado para string vazia para que "Selecione" apareça primeiro
+  infoExtra: "", dataAgendamento: null, turnoAgendamento: null,
+  statusEsteira: null, tecnico: null, obs: ""
+};
+
+// Adicionado 'onAddLead', 'onUpdateLead', 'onDeleteLead' nas props
+export default function AdminPanel({ leads, onAddLead, onUpdateLead, onDeleteLead }) {
+  const [busca, setBusca] = useState("");
+  const [leadExpandido, setLeadExpandido] = useState(null);
+  const [editando, setEditando] = useState(null);
+  const [leadEdit, setLeadEdit] = useState({});
+  const [showObsModal, setShowObsModal] = useState(false);
+  const [obsTemp, setObsTemp] = useState("");
+  const [obsLeadId, setObsLeadId] = useState(null);
+  const [showEsteiraModal, setShowEsteiraModal] = useState(false);
+  const [showObsObrigModal, setShowObsObrigModal] = useState(false);
+  const [obsObrig, setObsObrig] = useState("");
+  const [pendingStatusChange, setPendingStatusChange] = useState(null);
+  const [agendarData, setAgendarData] = useState("");
+  const [agendarTurno, setAgendarTurno] = useState("");
+  const [contratoInput, setContratoInput] = useState("");
+  const [statusFiltroResumo, setStatusFiltroResumo] = useState('total'); // MUDADO PARA 'total' POR PADRÃO
+  const [showNewLeadModal, setShowNewLeadModal] = useState(false);
+  const [newLeadData, setNewLeadData] = useState(initialNewLeadState);
+  
+  const [statusMenuState, setStatusMenuState] = useState({ open: false, leadId: null, position: {} });
+  const [newLeadStatusMenuState, setNewLeadStatusMenuState] = useState({ open: false, position: {} });
+  const newLeadStatusButtonRef = useRef(null);
+  
+  const today = new Date();
+  const [range, setRange] = useState([{ startDate: new Date(today.getFullYear(), today.getMonth(), 1), endDate: today, key: "selection" }]);
+  const [showPicker, setShowPicker] = useState(false);
+  const [appliedRange, setAppliedRange] = useState([{ startDate: new Date(today.getFullYear(), today.getMonth(), 1), endDate: today, key: "selection" }]);
+  const periodoLabel = appliedRange[0].startDate.toLocaleDateString("pt-BR") === appliedRange[0].endDate.toLocaleDateString("pt-BR") ? appliedRange[0].startDate.toLocaleDateString("pt-BR") : `${appliedRange[0].startDate.toLocaleDateString("pt-BR")} até ${appliedRange[0].endDate.toLocaleDateString("pt-BR")}`;
+  
+  function handleOk() { setAppliedRange(range); setShowPicker(false); }
+  function handleCancel() { setRange(appliedRange); setShowPicker(false); }
+  
+  // LOGS PARA DEPURAR - AGORA ELES DEVEM APARECER!
+  console.log('AdminPanel - Leads recebidos (prop):', leads);
+  console.log('AdminPanel - appliedRange (Filtro de Data):', appliedRange); // Log da data do filtro
+  
+  const leadsFiltradosPorDataEBusca = leads.filter(lead => {
+    // CORRIGIDO: parseISODate agora retorna null para inválidos
+    const d = parseISODate(lead.dataCadastro); 
+    const start = new Date(appliedRange[0].startDate);
+    const end = new Date(appliedRange[0].endDate);
+    start.setHours(0, 0, 0, 0); // Garante o início do dia
+    end.setHours(23, 59, 59, 999); // Garante o fim do dia
+
+    // CORRIGIDO: d deve ser uma data válida para a comparação
+    const dataOk = d && d >= start && d <= end; 
+    const buscaOk = lead.nome.toLowerCase().includes(busca.toLowerCase()) || (lead.cpf || "").replace(/\D/g, "").includes(busca.replace(/\D/g, ""));
+
+    // NOVOS CONSOLE.LOGS DETALHADOS PARA DEPURAR O FILTRO!
+    console.log(`--- Debug Filter para o Lead: ${lead.nome} ---`);
+    console.log(`  lead.dataCadastro (string): ${lead.dataCadastro}`);
+    console.log(`  Data do Lead (parseada - d): ${d ? d.toISOString() : 'Inválida/Nula'}`); // Mostrar 'Inválida'
+    console.log(`  Data Início do Filtro (start): ${start.toISOString()}`);
+    console.log(`  Data Fim do Filtro (end): ${end.toISOString()}`);
+    console.log(`  Resultado dataOk (d >= start && d <= end): ${dataOk}`);
+    console.log(`  Valor da busca: "${busca}"`);
+    console.log(`  Resultado buscaOk: ${buscaOk}`);
+    console.log(`  Resultado FINAL do filtro para este lead: ${dataOk && buscaOk}`);
+    console.log(`-------------------------------------------`);
+
+    // Agora mostra TODOS os leads para depuração, removendo o filtro de 'AGENDADO'
+    return dataOk && buscaOk; // <--- AGORA MOSTRA TODOS OS LEADS (EXCETO SE FILTRADO POR OUTRO STATUS)
+  });
+
+  const resumo = resumoPorStatus(leadsFiltradosPorDataEBusca);
+
+  // LOGS PARA DEPURAR
+  console.log('AdminPanel - Leads após filtro de data/busca:', leadsFiltradosPorDataEBusca);
+
+  // Mantenha o filtro de status, mas o foco é no filtro de data/busca para este teste
+  const leadsFiltradosParaTabela = leadsFiltradosPorDataEBusca.filter(lead => {
+    if (!statusFiltroResumo || statusFiltroResumo === "total") {
+      return true;
+    }
+    if (statusFiltroResumo === "QUALIFY") {
+      return lead.status1 && lead.status1.startsWith("QUALIFY");
+    }
+    return lead.status1 === statusFiltroResumo;
+  });
+
+  // LOGS PARA DEPURAR
+  console.log('AdminPanel - Leads finais para tabela (com filtro de status):', leadsFiltradosParaTabela);
+
+
+  // Função para alterar o status de um lead existente (interage com o backend)
+  const handleStatusChange = async (lead, nextStatus) => {
+    try {
+      await onUpdateLead({ ...lead, status1: nextStatus }); // Chama a prop onUpdateLead
+      setStatusMenuState({ open: false, leadId: null, position: {} });
+      if (nextStatus === "CPF REPROVADO" || nextStatus === "CANCELADO") { setPendingStatusChange({ lead, nextStatus }); setObsObrig(lead.obs || ""); setShowObsObrigModal(true); return; }
+      if (nextStatus === "AGENDADO") { setPendingStatusChange({ lead, nextStatus }); setContratoInput(""); const today = new Date().toISOString().split('T')[0]; setAgendarData(today); setAgendarTurno(""); setShowEsteiraModal(true); return; }
+    } catch (error) {
+      console.error("Erro ao alterar status:", error);
+      alert("Falha ao alterar status. Verifique o console.");
+    }
+  };
+
+  // Funções de salvamento que agora chamam as props do App.js
+  const handleSaveObsObrig = async () => {
+    if (!obsObrig.trim()) { alert("A observação é obrigatória para este status."); return; }
+    try {
+      const { lead, nextStatus } = pendingStatusChange;
+      await onUpdateLead({ ...lead, obs: obsObrig, status1: nextStatus }); // Chama a prop onUpdateLead
+      setShowObsObrigModal(false); setPendingStatusChange(null); setObsObrig("");
+    } catch (error) {
+      console.error("Erro ao salvar observação obrigatória:", error);
+      alert("Falha ao salvar observação. Verifique o console.");
+    }
+  };
+
+  const handleSaveEsteira = async () => {
+    if (!contratoInput.trim() || !agendarData.trim() || !agendarTurno.trim()) { alert("Por favor, preencha todos os campos para o agendamento."); return; }
+    try {
+      const { lead, nextStatus } = pendingStatusChange;
+      const statusInicialEsteira = "AGENDADO";
+      await onUpdateLead({
+        ...lead,
+        status1: nextStatus,
+        statusEsteira: statusInicialEsteira,
+        contrato: contratoInput,
+        dataAgendamento: agendarData.split('-').reverse().join('/'),
+        turnoAgendamento: agendarTurno,
+      }); // Chama a prop onUpdateLead
+      setShowEsteiraModal(false); setPendingStatusChange(null);
+    } catch (error) {
+      console.error("Erro ao salvar agendamento na esteira:", error);
+      alert("Falha ao agendar. Verifique o console.");
+    }
+  };
+  
+  function handleCancelStatusChange() { setShowObsObrigModal(false); setShowEsteiraModal(false); setPendingStatusChange(null); }
+  
+  // Ações de edição de infoExtra que agora chamam a prop onUpdateLead
+  const handleInfoExtraChange = async (lead, value) => {
+    try {
+      await onUpdateLead({ ...lead, infoExtra: value });
+    } catch (error) {
+      console.error("Erro ao alterar info extra:", error);
+      alert("Falha ao alterar info extra. Verifique o console.");
+    }
+  };
+
+  const handleInfoExtraChangeEdit = (value) => { setLeadEdit(f => ({ ...f, infoExtra: value })); };
+  
+  const startEdit = (lead) => {
+      setEditando(lead.id);
+      const leadToEdit = { ...lead };
+      if (leadToEdit.dataNascimento) {
+          const parts = leadToEdit.dataNascimento.split('/');
+          if (parts.length === 3) {
+              leadToEdit.dataNascimento = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+          }
+      }
+      setLeadEdit(leadToEdit);
+  };
+
+  const saveEdit = async (id) => {
+    try {
+      const leadData = { ...leadEdit };
+      if (leadData.dataNascimento) {
+          const parts = leadData.dataNascimento.split('-');
+          if (parts.length === 3) {
+              leadData.dataNascimento = `${parts[2]}/${parts[1]}/${parts[0]}`;
+          }
+      }
+      await onUpdateLead({ ...leadData, id }); // Chama a prop onUpdateLead
+      setEditando(null);
+    } catch (error) {
+      console.error("Erro ao salvar edição:", error);
+      alert("Falha ao salvar edição. Verifique o console.");
+    }
+  };
+
+  function cancelEdit() { setEditando(null); }
+  
+  const handleOpenObs = (lead) => { setObsLeadId(lead.id); setObsTemp(lead.obs || ""); setShowObsModal(true); };
+  const handleCloseObs = () => { setShowObsModal(false); setObsLeadId(null); setObsTemp(""); };
+  
+  const salvarObs = async () => {
+    try {
+      // Busca o lead atualizado da lista para garantir que obsLeadId ainda é válido
+      const leadToUpdate = leads.find(l => l.id === obsLeadId);
+      if (leadToUpdate) {
+        await onUpdateLead({ ...leadToUpdate, obs: obsTemp }); // Chama a prop onUpdateLead
+      }
+      handleCloseObs();
+    } catch (error) {
+      console.error("Erro ao salvar observação:", error);
+      alert("Falha ao salvar observação. Verifique o console.");
+    }
+  };
+  
+  const handleNewLeadChange = (e) => {
+    const { name, value } = e.target;
+    let newValue = value;
+    if (name === "dataNascimento" && value) {
+        if (value.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            const [year, month, day] = value.split('-');
+            newValue = `${day}/${month}/${year}`;
         }
+    }
+    setNewLeadData(prev => ({ ...prev, [name]: newValue }));
+  };
 
-        try {
-          const leadToSave = { ...newLeadData };
-          const loggedInVendedor = "VENDEDOR AUTOMÁTICO"; // Simulação do vendedor logado
+  const handleSelectNewLeadStatus = (leadMock, statusSelected) => {
+    setNewLeadData(prev => ({ ...prev, status1: statusSelected }));
+    setNewLeadStatusMenuState({ open: false, position: {} }); // Garante que o menu feche
+  };
 
-          const newLead = {
-            ...initialNewLeadState, // Garante que todos os campos base existam
-            ...leadToSave,
-            id: Date.now().toString(), // ID como string para o DB
-            dataCadastro: new Date().toISOString().slice(0, 10),
-            vendedor: loggedInVendedor,
-            // Garante que campos não preenchidos no form tenham valores padrão
-            dataAgendamento: leadToSave.dataAgendamento || null,
-            turnoAgendamento: leadToSave.turnoAgendamento || null,
-            statusEsteira: leadToSave.statusEsteira || null,
-            tecnico: leadToSave.tecnico || null,
-            obs: leadToSave.obs || "",
-            contrato: leadToSave.contrato || "",
-            infoExtra: leadToSave.infoExtra || "",
-            pontoReferencia: leadToSave.pontoReferencia || "",
-            linkLocalizacao: leadToSave.linkLocalizacao || "",
-            obsEndereco: leadToSave.obsEndereco || "",
-            origemVenda: leadToSave.origemVenda || "",
-            diaVencimento: leadToSave.diaVencimento || "",
-          };
+  const handleSaveNewLead = async (e) => {
+    e.preventDefault();
+    // Validação agora inclui status1
+    if (!newLeadData.nome || !newLeadData.cpf || !newLeadData.telefone || !newLeadData.plano || !newLeadData.status1) {
+        alert("Nome, CPF, Telefone, Plano e Status Inicial são obrigatórios para um novo lead.");
+        return;
+    }
 
-          await onAddLead(newLead); // Chama a prop onAddLead para enviar ao backend
-          setShowNewLeadModal(false);
-          setNewLeadData(initialNewLeadState); // Reseta o formulário
-        } catch (error) {
-          console.error("Erro ao salvar novo lead:", error);
-          alert("Falha ao cadastrar novo lead. Verifique o console.");
-        }
+    try {
+      const leadToSave = { ...newLeadData };
+      const loggedInVendedor = "VENDEDOR AUTOMÁTICO"; // Simulação do vendedor logado
+
+      const newLead = {
+        ...initialNewLeadState, // Garante que todos os campos base existam
+        ...leadToSave,
+        id: Date.now().toString(), // ID como string para o DB
+        dataCadastro: new Date().toISOString().slice(0, 10),
+        vendedor: loggedInVendedor,
+        // Garante que campos não preenchidos no form tenham valores padrão
+        dataAgendamento: leadToSave.dataAgendamento || null,
+        turnoAgendamento: leadToSave.turnoAgendamento || null,
+        statusEsteira: leadToSave.statusEsteira || null,
+        tecnico: leadToSave.tecnico || null,
+        obs: leadToSave.obs || "",
+        contrato: leadToSave.contrato || "",
+        infoExtra: leadToSave.infoExtra || "",
+        pontoReferencia: leadToSave.pontoReferencia || "",
+        linkLocalizacao: leadToSave.linkLocalizacao || "",
+        obsEndereco: leadToSave.obsEndereco || "",
+        origemVenda: leadToSave.origemVenda || "",
+        diaVencimento: leadToSave.diaVencimento || "",
       };
+
+      await onAddLead(newLead); // Chama a prop onAddLead para enviar ao backend
+      setShowNewLeadModal(false);
+      setNewLeadData(initialNewLeadState); // Reseta o formulário
+    } catch (error) {
+      console.error("Erro ao salvar novo lead:", error);
+      alert("Falha ao cadastrar novo lead. Verifique o console.");
+    }
+  };
+  
+  const inputStyle = "w-full mt-1 px-3 py-1.5 border border-gray-300 rounded-md shadow-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 transition";
+
+  return (
+    <div className="flex min-h-screen bg-gray-100 text-gray-900">
+      <aside className="bg-gray-200 w-60 flex flex-col py-6 px-4 min-h-screen text-gray-900 border-r border-gray-300"><div className="font-bold text-2xl mb-4 flex items-center gap-2"><FileBarChart2 className="w-7 h-7 text-green-500" /> Infinite Link</div><nav className="flex-1 flex flex-col gap-3"><Link to="/" className="flex items-center gap-2 p-2 rounded-lg bg-green-100 text-green-700 font-semibold"><ListTodo className="w-5 h-5" /> Pré-Vendas</Link><Link to="/esteira" className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-300 transition"><Users className="w-5 h-5" /> Esteira Agendados</Link></nav><div className="mt-auto text-xs text-gray-600 pt-6 border-t border-gray-300">v3.7</div></aside>
       
-      const inputStyle = "w-full mt-1 px-3 py-1.5 border border-gray-300 rounded-md shadow-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 transition";
-
-      return (
-        <div className="flex min-h-screen bg-gray-100 text-gray-900">
-          <aside className="bg-gray-200 w-60 flex flex-col py-6 px-4 min-h-screen text-gray-900 border-r border-gray-300"><div className="font-bold text-2xl mb-4 flex items-center gap-2"><FileBarChart2 className="w-7 h-7 text-green-500" /> Infinite Link</div><nav className="flex-1 flex flex-col gap-3"><Link to="/" className="flex items-center gap-2 p-2 rounded-lg bg-green-100 text-green-700 font-semibold"><ListTodo className="w-5 h-5" /> Pré-Vendas</Link><Link to="/esteira" className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-300 transition"><Users className="w-5 h-5" /> Esteira Agendados</Link></nav><div className="mt-auto text-xs text-gray-600 pt-6 border-t border-gray-300">v3.7</div></aside>
-          
-          <main className="flex-1 py-10 px-6 lg:px-16 bg-gray-100 min-h-screen">
-            <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
-              <div className="flex items-center gap-3 relative">
-                <div className="relative w-fit">
-                  <button className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 shadow-sm bg-white hover:ring-2 hover:ring-green-400 transition" onClick={() => setShowPicker(!showPicker)} type="button"><CalendarDays className="w-5 h-5 text-green-600" /><span className="text-sm">{periodoLabel}</span></button>{showPicker && (<div className="absolute z-50 mt-2 shadow-2xl bg-white rounded p-3 border border-gray-300"><DateRange onChange={item => setRange([item.selection])} ranges={range} locale={ptBR} moveRangeOnFirstSelection={false} rangeColors={["#16a34a"]} showDateDisplay={false} /><div className="flex justify-end gap-2 pt-2"><button className="px-3 py-1 rounded bg-gray-200 text-gray-800 text-sm" onClick={handleCancel} type="button">Cancelar</button><button className="px-3 py-1 rounded bg-green-600 text-white text-sm" onClick={handleOk} type="button">Aplicar</button></div></div>)}
+      <main className="flex-1 py-10 px-6 lg:px-16 bg-gray-100 min-h-screen">
+        <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
+          <div className="flex items-center gap-3 relative">
+            <div className="relative w-fit">
+              <button className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 shadow-sm bg-white hover:ring-2 hover:ring-green-400 transition" onClick={() => setShowPicker(!showPicker)} type="button"><CalendarDays className="w-5 h-5 text-green-600" /><span className="text-sm">{periodoLabel}</span></button>{showPicker && (<div className="absolute z-50 mt-2 shadow-2xl bg-white rounded p-3 border border-gray-300"><DateRange onChange={item => setRange([item.selection])} ranges={range} locale={ptBR} moveRangeOnFirstSelection={false} rangeColors={["#16a34a"]} showDateDisplay={false} /><div className="flex justify-end gap-2 pt-2"><button className="px-3 py-1 rounded bg-gray-200 text-gray-800 text-sm" onClick={handleCancel} type="button">Cancelar</button><button className="px-3 py-1 rounded bg-green-600 text-white text-sm" onClick={handleOk} type="button">Aplicar</button></div></div>)}
                 </div>
                 <UserSearch className="w-6 h-6 text-gray-400 ml-5" />
                 <input type="text" placeholder="Buscar cliente por CPF ou nome" className="w-full md:w-96 px-4 py-2 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-green-400 focus:outline-none bg-white text-gray-900" value={busca} onChange={e => setBusca(e.target.value)} />
@@ -474,8 +479,7 @@
             </div>
             <form onSubmit={handleSaveNewLead}>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
-                
-{/* Dados Pessoais */}
+                {/* Dados Pessoais */}
                 <div className="space-y-4 p-4 border rounded-lg shadow-sm bg-white">
                   <h4 className="font-semibold text-lg text-green-600">Dados Pessoais</h4>
                   <div><label className="text-sm">Nome Completo <span className="text-red-500">*</span></label><input name="nome" value={newLeadData.nome} onChange={handleNewLeadChange} className={inputStyle} required /></div>
