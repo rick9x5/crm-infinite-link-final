@@ -1,19 +1,21 @@
 // backend/server.js
 const express = require('express');
 const cors = require('cors');
-const { Client } = require('pg');
+// O cliente PG é carregado condicionalmente na função initializeDatabase
+// const { Client } = require('pg'); // Removido daqui
 
-const app = express();
+const app = express(); // DEFINIR 'app' AQUI, NO INÍCIO!
 const PORT = process.env.PORT || 5000;
 
-let db;
-let pgClient;
+let db; // Variável global para a instância do banco de dados (SQLite ou PG)
 
 // --- Middlewares ---
+// Configuração do CORS para permitir múltiplas origens (localhost e Vercel dinâmico)
 const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:3002',
-  'https://crm-infinite-link-final.vercel.app',
+  'http://localhost:3000', // Para o ambiente de desenvolvimento local (frontend)
+  'http://localhost:3002', // Se o seu frontend estiver rodando em 3002
+  'https://crm-infinite-link-final.vercel.app', // A URL principal do seu frontend no Vercel
+  // Regex para permitir qualquer subdomínio gerado pelo Vercel para o seu projeto
   /https:\/\/crm-infinite-link-final-(.+)\.vercel\.app$/ 
 ];
 
@@ -23,7 +25,7 @@ app.use(cors({
     if (allowedOrigins.includes(origin) || allowedOrigins.some(regex => regex instanceof RegExp && regex.test(origin))) {
       return callback(null, true);
     }
-    console.error('CORS blocked origin:', origin);
+    console.error('CORS blocked origin:', origin); 
     return callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -33,7 +35,31 @@ app.use(cors({
 app.use(express.json());
 
 
-// --- Inicialização do Banco de Dados (Assíncrona para PostgreSQL) ---
+// --- Função para Mapear Parâmetros Nomeados (@param) para Posicionais ($n ou ?) ---
+// Isso garante que db.run/db.all funcione consistentemente com objetos de parâmetros
+function mapParamsToPositional(sql, params) {
+  const paramNames = Object.keys(params);
+  const paramValues = [];
+  let positionalSql = sql;
+
+  if (sql.includes('@')) { // Para SQL que usa @nome (SQLite e minha convenção)
+    let index = 1;
+    positionalSql = sql.replace(/@(\w+)/g, (match, p1) => {
+      paramValues.push(params[p1]);
+      return `$${index++}`; // Para PostgreSQL, usa $1, $2
+    });
+  } else if (sql.includes('$')) { // Para SQL que já usa $1 (DELETE no PG)
+    // Se o SQL já é posicional (como DELETE), só extrai os valores em ordem esperada
+    for (let i = 1; i <= paramNames.length; i++) {
+        paramValues.push(params[i]); // Pega params[1], params[2] etc.
+    }
+  }
+
+  return { positionalSql, paramValues };
+}
+
+
+// --- Inicialização do Banco de Dados (Assíncrona) ---
 async function initializeDatabase() {
   if (!process.env.DATABASE_URL) {
       // === Configuração para SQLite local ===
@@ -41,29 +67,18 @@ async function initializeDatabase() {
       console.log('Backend: Usando SQLite local para desenvolvimento.');
       const dbLocal = new Database('crm_leads.db', { verbose: console.log });
 
+      // Adaptação de run/all para SQLite
       dbLocal.run = (sql, params) => {
-          const sqliteSql = sql.replace(/\$(\d+)/g, '?');
-          const stmt = dbLocal.prepare(sqliteSql);
-          const boundParams = {};
-          if (params) {
-            Object.keys(params).forEach(key => {
-                boundParams[key] = params[key];
-            });
-          }
-          const result = stmt.run(Object.values(boundParams));
+          const { positionalSql, paramValues } = mapParamsToPositional(sql.replace(/\$(\d+)/g, '?'), params); // Substitui $n por ? para SQLite
+          const stmt = dbLocal.prepare(positionalSql);
+          const result = stmt.run(paramValues);
           return { changes: result.changes, lastInsertRowid: result.lastInsertRowid };
       };
 
       dbLocal.all = (sql, params = {}) => {
-          const sqliteSql = sql.replace(/\$(\d+)/g, '?');
-          const stmt = dbLocal.prepare(sqliteSql);
-          const boundParams = {};
-          if (params) {
-            Object.keys(params).forEach(key => {
-                boundParams[key] = params[key];
-            });
-          }
-          return stmt.all(boundParams);
+          const { positionalSql, paramValues } = mapParamsToPositional(sql.replace(/\$(\d+)/g, '?'), params); // Substitui $n por ? para SQLite
+          const stmt = dbLocal.prepare(positionalSql);
+          return stmt.all(paramValues);
       };
 
       dbLocal.exec(`
@@ -83,6 +98,7 @@ async function initializeDatabase() {
   }
 
   // --- Configuración para PostgreSQL en Heroku ---
+  const { Client } = require('pg'); // Carregar pg aqui
   pgClient = new Client({
     connectionString: process.env.DATABASE_URL,
     ssl: {
@@ -94,24 +110,17 @@ async function initializeDatabase() {
     await pgClient.connect();
     console.log('Backend: Conectado a PostgreSQL en Heroku!');
 
+    // Adaptação de run/all para PostgreSQL
     pgClient.run = async (sql, params) => {
-      let pgSql = sql.replace(/@(\w+)/g, (match, p1) => {
-        const index = Object.keys(params).indexOf(p1) + 1;
-        return `$${index}`;
-      });
-      const paramValues = Object.values(params);
-      const res = await pgClient.query(pgSql, paramValues);
-      return { changes: res.rowCount, lastInsertRowid: res.rows[0] ? res.rows[0].id : undefined };
+        const { positionalSql, paramValues } = mapParamsToPositional(sql, params);
+        const res = await pgClient.query(positionalSql, paramValues);
+        return { changes: res.rowCount, lastInsertRowid: res.rows[0] ? res.rows[0].id : undefined, rows: res.rows }; // Incluir 'rows' para RETURNING
     };
 
     pgClient.all = async (sql, params = {}) => {
-      let pgSql = sql.replace(/@(\w+)/g, (match, p1) => {
-        const index = Object.keys(params).indexOf(p1) + 1;
-        return `$${index}`;
-      });
-      const paramValues = Object.values(params);
-      const res = await pgClient.query(pgSql, paramValues);
-      return res.rows;
+        const { positionalSql, paramValues } = mapParamsToPositional(sql, params);
+        const res = await pgClient.query(positionalSql, paramValues);
+        return res.rows;
     };
 
     await pgClient.query(`
@@ -173,37 +182,29 @@ app.get('/api/leads', async (req, res) => {
 app.post('/api/leads', async (req, res) => {
   const newLead = req.body;
   
-  // Assegura que dataCadastro tenha um valor, priorizando o que vem do frontend
-  // ou usando a data atual, no formato YYYY-MM-DD.
-  // REMOVIDA A LINHA ABAIXO, POIS OS CAMPOS SÃO PASSADOS DIRETAMENTE NO SQL!
-  // newLead.dataCadastro = (newLead.dataCadastro && String(newLead.dataCadastro).match(/^\d{4}-\d{2}-\d{2}$/))
-  //                         ? String(newLead.dataCadastro).slice(0, 10)
-  //                         : new Date().toISOString().slice(0, 10);
+  // Garantir que newLead.dataCadastro esteja no formato YYYY-MM-DD ou seja a data atual
+  newLead.dataCadastro = (newLead.dataCadastro && String(newLead.dataCadastro).match(/^\d{4}-\d{2}-\d{2}$/))
+                          ? String(newLead.dataCadastro).slice(0, 10)
+                          : new Date().toISOString().slice(0, 10); // Default to current date
 
-  // Lista de colunas e placeholders para o SQL, incluindo 'id' e 'dataCadastro'
-  const columns = ['nome', 'cpf', 'email', 'dataNascimento', 'telefone', 'telefone2', 'uf', 'cep', 'rua', 'numero', 'complemento',
-                   'bairro', 'cidade', 'plano', 'vendedor', 'dataAgendamento', 'turnoAgendamento', 'status1', 'statusEsteira', 'tecnico', 'obs',
-                   'contrato', 'infoExtra', 'pontoReferencia', 'linkLocalizacao', 'obsEndereco', 'origemVenda', 'diaVencimento'];
-  const placeholders = columns.map(col => `@${col}`);
+  const columns = [
+    'nome', 'cpf', 'email', 'dataNascimento', 'telefone', 'telefone2', 'uf', 'cep', 'rua', 'numero', 'complemento',
+    'bairro', 'cidade', 'plano', 'vendedor', 'dataAgendamento', 'turnoAgendamento', 'status1', 'statusEsteira', 'tecnico', 'obs',
+    'contrato', 'infoExtra', 'pontoReferencia', 'linkLocalizacao', 'obsEndereco', 'origemVenda', 'diaVencimento', 'dataCadastro' // Incluir dataCadastro aqui
+  ];
+  
+  const placeholders = columns.map(col => `@${col}`); // Usar @ para nomeados
   const values = {};
   columns.forEach(col => {
-      values[col] = newLead[col] !== undefined ? newLead[col] : null; // Usa null para undefined/ausente
+      values[col] = newLead[col] !== undefined ? newLead[col] : null; // Mapear para null se for undefined
   });
-
-  // O ID e dataCadastro são gerenciados pelo DB via DEFAULT gen_random_uuid() e DEFAULT TO_CHAR(NOW(), 'YYYY-MM-DD')
-  // Não precisamos passá-los no INSERT se queremos que o DB os gere.
-  // Se o frontend enviar um ID, o backend vai usar. Para dataCadastro, o COALESCE pega o do frontend ou o DEFAULT.
-
-  // Adicionando 'id' e 'dataCadastro' para serem passados apenas se existirem em newLead
-  if (newLead.id) {
-    columns.unshift('id');
-    placeholders.unshift('@id');
-    values.id = newLead.id;
-  }
   
-  // Tratamento específico para dataCadastro para garantir o formato ou DEFAULT
-  // Este valor já está sendo tratado pela cláusula COALESCE no SQL VALUES
-  // values.dataCadastro = newLead.dataCadastro || new Date().toISOString().slice(0, 10); // Redundante aqui
+  // Se o ID for enviado do frontend (ex: para re-inserção de mocks), inclua-o
+  if (newLead.id) {
+    columns.unshift('id'); // Adiciona 'id' ao início da lista de colunas
+    placeholders.unshift('@id'); // Adiciona '@id' ao início da lista de placeholders
+    values.id = newLead.id; // Adiciona o valor do ID
+  }
 
   const sql = `
     INSERT INTO leads (
@@ -213,7 +214,7 @@ app.post('/api/leads', async (req, res) => {
     ) RETURNING id, dataCadastro`; // Sempre retorna o ID e dataCadastro gerados/usados
 
   try {
-    const info = await db.run(sql, values); // Passa 'values' aqui
+    const info = await db.run(sql, values); // Passar o objeto 'values' aqui
     res.status(201).json({ 
         message: "Lead added successfully!", 
         lead: { ...newLead, id: info.rows[0].id, dataCadastro: info.rows[0].dataCadastro } 
